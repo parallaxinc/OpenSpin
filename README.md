@@ -11,7 +11,7 @@ The code successfully compiles all of the Library files shipped with PropTool as
 
 The only binary differences are from the corrected handling of floating point numbers (which is now IEEE compliant).
 
-As of version r41, it supports a basic [preprocessor][Preprocessor].
+As of version r41, it supports a basic [preprocessor](https://github.com/reltham/OpenSpin/wiki/Preprocessor).
 
 PropellerCompiler library
 -------------------------
@@ -21,12 +21,12 @@ PropellerCompiler.cpp/h contain the interface to the compiler. Look at openspin.
 openspin.exe
 ------------
 
-openspin.exe is a command line wrapper for the compiler library. You give it a spin file and it passes it through the compiler and produces a .binary (or optional .eeprom) file with the same base name as the passed in spin file. There are several [command line options][CommandLine] available. Run openspin.exe with no arguments to get a usage description.
+openspin.exe is a command line wrapper for the compiler library. You give it a spin file and it passes it through the compiler and produces a .binary (or optional .eeprom) file with the same base name as the passed in spin file. There are several [command line options](https://github.com/reltham/OpenSpin/wiki/CommandLine) available. Run openspin.exe with no arguments to get a usage description.
 
 Binary Downloads
 ----------------
 
-[Binary build downloads are available.][Downloads]
+[Binary build downloads are available.](https://github.com/reltham/OpenSpin/wiki/Downloads)
 
 Thanks
 ------
