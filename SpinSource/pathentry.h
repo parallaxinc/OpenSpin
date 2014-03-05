@@ -34,6 +34,7 @@ struct PathEntry
 const char *MakeNextPath(PathEntry **entry, const char *name); // pass the address of an entry that is NULL to get first path, keep calling with same entry to walk list
 bool AddPath(const char *path);
 bool AddFilePath(const char *name);
+void CleanupPathEntries();
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 //                           TERMS OF USE: MIT License                                   //

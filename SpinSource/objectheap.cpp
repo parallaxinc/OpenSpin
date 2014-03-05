@@ -72,6 +72,7 @@ void CleanObjectHeap()
         s_ObjHeap[i].Obj = NULL;
         s_ObjHeap[i].ObjSize = 0;
     }
+    s_nObjHeapIndex = 0;
 }
 
 bool CopyObjectsFromHeap(CompilerData* pCompilerData, char* filenames)

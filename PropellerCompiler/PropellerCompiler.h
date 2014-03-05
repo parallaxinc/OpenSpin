@@ -142,6 +142,7 @@ struct CompilerData
 
 // public functions
 extern CompilerData* InitStruct();
+extern void Cleanup();
 extern const char* Compile1();
 extern const char* Compile2();
 extern bool GetErrorInfo(int& lineNumber, int& column, int& offsetToStartOfLine, int& offsetToEndOfLine, int& offendingItemStart, int& offendingItemEnd);

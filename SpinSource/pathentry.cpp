@@ -72,6 +72,19 @@ bool AddFilePath(const char *name)
     return true;
 }
 
+void CleanupPathEntries()
+{
+    PathEntry *entry = path;
+    while (entry != NULL)
+    {
+        PathEntry *nextEntry = entry->next;
+        delete [] entry;
+        entry = nextEntry;
+    }
+    path = NULL;
+    lastfullpath[0] = 0;
+}
+
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////

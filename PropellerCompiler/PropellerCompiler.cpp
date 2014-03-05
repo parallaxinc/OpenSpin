@@ -70,6 +70,16 @@ CompilerData* InitStruct()
     return g_pCompilerData;
 }
 
+void Cleanup()
+{
+    delete g_pElementizer;
+    g_pElementizer = 0;
+    delete g_pSymbolEngine;
+    g_pSymbolEngine = 0;
+    delete g_pCompilerData;
+    g_pCompilerData = 0;
+}
+
 // Usage:
 //
 //  Call Compile1

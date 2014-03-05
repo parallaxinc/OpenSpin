@@ -943,6 +943,11 @@ int main(int argc, char* argv[])
     // cleanup
     delete [] s_pCompilerData->list;
     delete [] s_pCompilerData->doc;
+    delete [] s_pCompilerData->obj;
+    delete [] s_pCompilerData->source;
+    CleanObjectHeap();
+    CleanupPathEntries();
+    Cleanup();
 
     return 0;
 }
