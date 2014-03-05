@@ -64,7 +64,7 @@ struct CompilerData
     bool            error;          // Compilation status; error if true, success if false
     const char*     error_msg;      // Pointer to error string
 
-    bool            compile_mode;   // Compile Mode; False = normal compile, True = Propeller Development compile
+    int             compile_mode;   // Compile Mode; 0 = normal compile, 1 = Propeller Development compile
 
     char*           source;         // Pointer to source data
     int             source_start;   // Offending item start (if error)

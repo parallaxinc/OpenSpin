@@ -29,7 +29,7 @@
 
 #define MAX_FILES           2048    // an object can only reference 32 other objects and only 32 dat files, so the worst case is 32*32*2 files
 
-struct preprocess preprocessor;
+static struct preprocess s_preprocessor;
 static CompilerData* s_pCompilerData = NULL;
 static bool s_bUsePreprocessor = false;
 static bool s_bAlternatePreprocessorMode  = false;
@@ -134,9 +134,9 @@ char* LoadFile(char* pFilename, int* pnLength)
     {
         if (s_bUsePreprocessor)
         {
-            pp_push_file_struct(&preprocessor, pFile, pFilename);
-            pp_run(&preprocessor);
-            pBuffer = pp_finish(&preprocessor);
+            pp_push_file_struct(&s_preprocessor, pFile, pFilename);
+            pp_run(&s_preprocessor);
+            pBuffer = pp_finish(&s_preprocessor);
             *pnLength = strlen(pBuffer);
             if (*pnLength == 0)
             {
@@ -271,7 +271,7 @@ bool CompileRecursively(char* pFilename, bool bQuiet, bool bFileTreeOutputOnly)
     void *definestate = 0;
     if (s_bUsePreprocessor)
     {
-        definestate = pp_get_define_state(&preprocessor);
+        definestate = pp_get_define_state(&s_preprocessor);
     }
     if (!GetPASCIISource(pFilename))
     {
@@ -314,7 +314,7 @@ bool CompileRecursively(char* pFilename, bool bQuiet, bool bFileTreeOutputOnly)
         if (s_bUsePreprocessor)
         {
             // undo any defines in sub-objects
-            pp_restore_define_state(&preprocessor, definestate);
+            pp_restore_define_state(&s_preprocessor, definestate);
         }
         if (!GetPASCIISource(pFilename))
         {
@@ -375,7 +375,7 @@ bool CompileRecursively(char* pFilename, bool bQuiet, bool bFileTreeOutputOnly)
 
     // Check to make sure object fits into 32k (or eeprom size if specified as larger than 32k)
     unsigned int i = 0x10 + s_pCompilerData->psize + s_pCompilerData->vsize + (s_pCompilerData->stack_requirement << 2);
-    if (!s_pCompilerData->compile_mode && (i > s_pCompilerData->eeprom_size))
+    if ((s_pCompilerData->compile_mode == 0) && (i > s_pCompilerData->eeprom_size))
     {
         printf("%s : error : Object exceeds runtime memory limit by %d longs.\n", pFilename, (i - s_pCompilerData->eeprom_size) >> 2);
         return false;
@@ -482,6 +482,10 @@ int main(int argc, char* argv[])
     bool bBinary  = true;
     unsigned int  eeprom_size = 32768;
     s_bUsePreprocessor = true;
+    s_bAlternatePreprocessorMode = false;
+    s_nObjStackPtr = 0;
+    s_nFilesAccessed = 0;
+    s_pCompilerData = NULL;
     bool bFileTreeOutputOnly = false;
     bool bFileListOutputOnly = false;
     bool bDumpSymbols = false;
@@ -651,7 +655,7 @@ int main(int argc, char* argv[])
 
     if (s_bUsePreprocessor)
     {
-        pp_init(&preprocessor, s_bAlternatePreprocessorMode);
+        pp_init(&s_preprocessor, s_bAlternatePreprocessorMode);
 
         // go through the command line arguments again, this time only processing -D
         for(int i = 1; i < argc; i++)
@@ -679,7 +683,7 @@ int main(int argc, char* argv[])
                         // add any predefined symbols here - note that when using the 
                         // "alternate" rules, these symbols have a null value - i.e.
                         // they are just "defined", but are not used in macro substitution
-                        pp_define(&preprocessor, p, (s_bAlternatePreprocessorMode ? "" : "1"));
+                        pp_define(&s_preprocessor, p, (s_bAlternatePreprocessorMode ? "" : "1"));
                     }
                     else
                     {
@@ -692,10 +696,10 @@ int main(int argc, char* argv[])
         }
 
         // add symbols with predefined values here
-        pp_define(&preprocessor, "__SPIN__", "1");
-        pp_define(&preprocessor, "__TARGET__", "P1");
+        pp_define(&s_preprocessor, "__SPIN__", "1");
+        pp_define(&s_preprocessor, "__TARGET__", "P1");
 
-        pp_setcomments(&preprocessor, "\'", "{", "}");
+        pp_setcomments(&s_preprocessor, "\'", "{", "}");
     }
 
     // finish the include path

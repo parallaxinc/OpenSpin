@@ -94,8 +94,10 @@ bool StringConstant_PostProcess()
             int temp = g_pCompilerData->obj_ptr;
             temp += g_pCompilerData->str_offset[strIndex];
             temp |= 0x8000;
-            short strAddress = ((temp & 0xFF00) >> 8) | ((temp & 0x00FF) << 8);  // xchg ah,al
-            *((short*)&(g_pCompilerData->obj[g_pCompilerData->str_patch[strIndex]])) = strAddress;
+            //short strAddress = ((temp & 0xFF00) >> 8) | ((temp & 0x00FF) << 8);  // xchg ah,al
+            //*((short*)&(g_pCompilerData->obj[g_pCompilerData->str_patch[strIndex]])) = strAddress;
+            g_pCompilerData->obj[g_pCompilerData->str_patch[strIndex]] = (unsigned char)((temp >> 8) & 0xFF);
+            g_pCompilerData->obj[g_pCompilerData->str_patch[strIndex] + 1] = (unsigned char)(temp & 0xFF);
             strIndex++;
             g_pCompilerData->str_count--;
         }

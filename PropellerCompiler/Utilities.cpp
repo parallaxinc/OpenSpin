@@ -255,7 +255,11 @@ bool CheckLocal(bool& bLocal)
         //append above four bytes to the symbol name
         char* pSymbol = g_pElementizer->GetCurrentSymbol();
         pSymbol += strlen(pSymbol);
-        *((int*)pSymbol) = temp;
+        //*((int*)pSymbol) = temp;
+        pSymbol[0] = (char)(temp & 0xFF);
+        pSymbol[1] = (char)((temp >> 8) & 0xFF);
+        pSymbol[2] = (char)((temp >> 16) & 0xFF);
+        pSymbol[3] = (char)((temp >> 24) & 0xFF);
         pSymbol += 4;
         *pSymbol = 0;
 

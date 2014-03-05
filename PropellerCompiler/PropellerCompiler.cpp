@@ -905,8 +905,8 @@ bool CompileObjSymbols()
 
         unsigned char* pDataEnd = pData + g_pCompilerData->obj_lengths[nFile];
 
-        short vsize = *((short*)(&pData[0]));
-        short psize = *((short*)(&pData[2]));
+        short vsize = pData[0] | ((short)pData[1] << 8);// *((short*)(&pData[0]));
+        short psize = pData[2] | ((short)pData[3] << 8);// *((short*)(&pData[2]));
         pData += 4; // move past vsize/psize
 
         // validate checksum and that vsize/psize are valid long addresses
@@ -950,7 +950,7 @@ bool CompileObjSymbols()
                     }
                     else	// handle objcon or objcon_float symbol
                     {
-                        int value = *((int*)(&pData[1]));
+                        int value = (int)pData[1] | ((int)pData[2] << 8)  | ((int)pData[3] << 16)  | ((int)pData[4] << 24);// *((int*)(&pData[1]));
                         g_pSymbolEngine->AddSymbol(g_pCompilerData->symbolBackup, (pData[0] == 16) ? type_objcon : type_objcon_float, value);
 #ifdef RPE_DEBUG
                         float fValue = *((float*)(&value));
@@ -1398,11 +1398,13 @@ bool CompileObjBlocks()
         unsigned char* pObj = &(g_pCompilerData->obj_data[g_pCompilerData->obj_offsets[i]]);
 
         // get vsize and save in objvar[i]
-        objvar[i] = (int)(*((unsigned short*)(pObj)));
+        //objvar[i] = (int)(*((unsigned short*)(pObj)));
+        objvar[i] = (int)pObj[0] | ((int)pObj[1] << 8);
         pObj += 2;
 
         // get psize
-        unsigned short psize = *((unsigned short*)(pObj));
+        //unsigned short psize = *((unsigned short*)(pObj));
+        unsigned short psize = (unsigned short)pObj[0] | ((unsigned short)pObj[1] << 8);
         pObj += 2;
 
         for (unsigned short j = 0; j < psize; j++)
