@@ -853,6 +853,7 @@ pp_run(struct preprocess *pp)
             } else {
                 char *line = flexbuf_get(&pp->line);
                 flexbuf_addstr(&pp->whole, line);
+                free(line);
             }
         }
         pp_pop_file(pp);
@@ -863,6 +864,8 @@ char *
 pp_finish(struct preprocess *pp)
 {
     flexbuf_addchar(&pp->whole, 0);
+    pp_clear_define_state(pp);
+    flexbuf_delete(&pp->line);
     return flexbuf_get(&pp->whole);
 }
 
@@ -906,6 +909,25 @@ pp_restore_define_state(struct preprocess *pp, void *vp)
         free(old);
     }
     pp->defs = x;
+}
+
+void
+pp_clear_define_state(struct preprocess *pp)
+{
+    struct predef *x, *old;
+
+    x = pp->defs;
+    while (x) {
+        old = x;
+        x = old->next;
+        if (old->flags & PREDEF_FLAG_FREEDEFS)
+        {
+            free((void *)old->name);
+            if (old->def) free((void *)old->def);
+        }
+        free(old);
+    }
+    pp->defs = 0;
 }
 
 #ifdef TEST

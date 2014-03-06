@@ -83,6 +83,10 @@ struct HashNode
 
     ~HashNode()
     {
+        if (pNext)
+        {
+            delete pNext;
+        }
         delete pValue;
     }
 };

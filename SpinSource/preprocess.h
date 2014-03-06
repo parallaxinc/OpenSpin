@@ -94,6 +94,9 @@ void *pp_get_define_state(struct preprocess *pp);
 /* restore the define state to the state given by a previous call to get_define_state */
 void pp_restore_define_state(struct preprocess *pp, void *ptr);
 
+/* clear all the define state */
+void pp_clear_define_state(struct preprocess *pp);
+
 /* actually perform the preprocessing on all files that have been pushed so far */
 void pp_run(struct preprocess *pp);
 

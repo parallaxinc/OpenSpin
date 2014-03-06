@@ -470,6 +470,18 @@ void ComposeRAM(unsigned char** ppBuffer, int& bufferSize, bool bDATonly, bool b
     }
 }
 
+void CleanupMemory()
+{
+    // cleanup
+    delete [] s_pCompilerData->list;
+    delete [] s_pCompilerData->doc;
+    delete [] s_pCompilerData->obj;
+    delete [] s_pCompilerData->source;
+    CleanObjectHeap();
+    CleanupPathEntries();
+    Cleanup();
+}
+
 int main(int argc, char* argv[])
 {
     char* infile = NULL;
@@ -511,6 +523,7 @@ int main(int argc, char* argv[])
                 else
                 {
                     Usage();
+                    CleanupMemory();
                     return 1;
                 }
                 AddPath(p);
@@ -528,12 +541,14 @@ int main(int argc, char* argv[])
                 else
                 {
                     Usage();
+                    CleanupMemory();
                     return 1;
                 }
                 sscanf(p, "%d", &eeprom_size);
                 if (eeprom_size > 16777216)
                 {
                     Usage();
+                    CleanupMemory();
                     return 1;
                 }
                 break;
@@ -550,6 +565,7 @@ int main(int argc, char* argv[])
                 else
                 {
                     Usage();
+                    CleanupMemory();
                     return 1;
                 }
                 break;
@@ -576,6 +592,7 @@ int main(int argc, char* argv[])
                     else
                     {
                         Usage();
+                        CleanupMemory();
                         return 1;
                     }
                     // just skipping these for now
@@ -583,6 +600,7 @@ int main(int argc, char* argv[])
                 else
                 {
                     Usage();
+                    CleanupMemory();
                     return 1;
                 }
                 break;
@@ -626,6 +644,7 @@ int main(int argc, char* argv[])
             case 'h':
             default:
                 Usage();
+                CleanupMemory();
                 return 1;
                 break;
             }
@@ -635,6 +654,7 @@ int main(int argc, char* argv[])
             if (infile)
             {
                 Usage();
+                CleanupMemory();
                 return 1;
             }
             infile = argv[i];
@@ -645,6 +665,7 @@ int main(int argc, char* argv[])
     if (!infile)
     {
         Usage();
+        CleanupMemory();
         return 1;
     }
 
@@ -678,6 +699,7 @@ int main(int argc, char* argv[])
                         else
                         {
                             Usage();
+                            CleanupMemory();
                             return 1;
                         }
                         // add any predefined symbols here - note that when using the 
@@ -688,6 +710,7 @@ int main(int argc, char* argv[])
                     else
                     {
                         Usage();
+                        CleanupMemory();
                         return 1;
                     }
                     break;
@@ -715,6 +738,7 @@ int main(int argc, char* argv[])
         {
             printf("ERROR: spinfile must have .spin extension. You passed in: %s\n", infile);
             Usage();
+            CleanupMemory();
             return 1;
         }
         else
@@ -786,6 +810,7 @@ int main(int argc, char* argv[])
 
     if (!CompileRecursively(infile, bQuiet, bFileTreeOutputOnly))
     {
+        CleanupMemory();
         return 1;
     }
 
@@ -940,14 +965,7 @@ int main(int argc, char* argv[])
         }
     }
 
-    // cleanup
-    delete [] s_pCompilerData->list;
-    delete [] s_pCompilerData->doc;
-    delete [] s_pCompilerData->obj;
-    delete [] s_pCompilerData->source;
-    CleanObjectHeap();
-    CleanupPathEntries();
-    Cleanup();
+    CleanupMemory();
 
     return 0;
 }
