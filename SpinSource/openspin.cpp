@@ -40,7 +40,7 @@ static char s_filesAccessed[MAX_FILES][PATH_MAX];
 static void Banner(void)
 {
     fprintf(stdout, "Propeller Spin/PASM Compiler \'OpenSpin\' (c)2012-2013 Parallax Inc. DBA Parallax Semiconductor.\n");
-    fprintf(stdout, "Compiled on %s %s\n",__DATE__, __TIME__);
+    fprintf(stdout, "Version 1.00.70 Compiled on %s %s\n",__DATE__, __TIME__);
 }
 
 /* Usage - display a usage message and exit */
@@ -473,10 +473,13 @@ void ComposeRAM(unsigned char** ppBuffer, int& bufferSize, bool bDATonly, bool b
 void CleanupMemory()
 {
     // cleanup
-    delete [] s_pCompilerData->list;
-    delete [] s_pCompilerData->doc;
-    delete [] s_pCompilerData->obj;
-    delete [] s_pCompilerData->source;
+    if ( s_pCompilerData )
+    {
+        delete [] s_pCompilerData->list;
+        delete [] s_pCompilerData->doc;
+        delete [] s_pCompilerData->obj;
+        delete [] s_pCompilerData->source;
+    }
     CleanObjectHeap();
     CleanupPathEntries();
     Cleanup();

@@ -824,6 +824,10 @@ bool CompileObjBlocksId()
                 }
             }
         }
+        else
+        {
+            return false;
+        }
     }
     return true;
 }

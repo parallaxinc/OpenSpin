@@ -13,12 +13,23 @@
 #ifndef _PROPELLER_COMPILER_H_
 #define _PROPELLER_COMPILER_H_
 
+//
+// OpenSpin code uses _stricmp() which is the VC++ name for the function.
+// this needs to be remapped to stricmp or strcasecmp depending on the compiler and OS being compiled on
+// GCC prior to version 4.8 have strcasecmp on both linux and windows
+// GCC 4.8 and newer on linux appears to still have strcasecmp, but GCC 4.8 and newer on windows does not (it has stricmp instead)
+//
+#if defined(__linux__)
+// we are on linux, then always use strcasecmp
+#define _stricmp strcasecmp
+#else
 #if __GNUC__
 // if GCC version is 4.8 or greater use stricmp, else use strcasecmp
 #if __GNUC__ > 4 || (__GNUC__ == 4 && (__GNUC_MINOR__ >= 8 ))
 #define _stricmp stricmp
 #else
 #define _stricmp strcasecmp
+#endif
 #endif
 #endif
 
