@@ -716,7 +716,6 @@ int main(int argc, char* argv[])
                         CleanupMemory();
                         return 1;
                     }
-                    break;
                 }
             }
         }
