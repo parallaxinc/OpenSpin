@@ -331,7 +331,7 @@ bool CompileRecursively(char* pFilename, bool bQuiet, bool bFileTreeOutputOnly)
 
         if (!CopyObjectsFromHeap(s_pCompilerData, filenames))
         {
-            printf("%s : error : Object files exceed 64k.\n", pFilename);
+            printf("%s : error : Object files exceed 128k.\n", pFilename);
             return false;
         }
     }
@@ -357,7 +357,7 @@ bool CompileRecursively(char* pFilename, bool bQuiet, bool bFileTreeOutputOnly)
             }
             if (p + s_pCompilerData->dat_lengths[i] > data_limit)
             {
-                printf("%s : error : Object files exceed 64k.\n", pFilename);
+                printf("%s : error : Object files exceed 128k.\n", pFilename);
                 return false;
             }
             s_pCompilerData->dat_offsets[i] = p;
@@ -392,7 +392,7 @@ bool CompileRecursively(char* pFilename, bool bQuiet, bool bFileTreeOutputOnly)
     return true;
 }
 
-void ComposeRAM(unsigned char** ppBuffer, int& bufferSize, bool bDATonly, bool bBinary, unsigned int eeprom_size)
+bool ComposeRAM(unsigned char** ppBuffer, int& bufferSize, bool bDATonly, bool bBinary, unsigned int eeprom_size)
 {
     if (!bDATonly)
     {
@@ -417,8 +417,8 @@ void ComposeRAM(unsigned char** ppBuffer, int& bufferSize, bool bDATonly, bool b
         {
            if (vbase + 8 > eeprom_size)
            {
-              printf("WARNING: Eeprom size exceeded by %d longs.\n", (vbase + 8 - eeprom_size) >> 2);
-              eeprom_size = vbase + 8;
+              printf("ERROR: eeprom size exceeded by %d longs.\n", (vbase + 8 - eeprom_size) >> 2);
+              return false;
            }
            // reset ram
            *ppBuffer = new unsigned char[eeprom_size];
@@ -468,6 +468,8 @@ void ComposeRAM(unsigned char** ppBuffer, int& bufferSize, bool bDATonly, bool b
         bufferSize = size;
         memcpy(&((*ppBuffer)[0]), &(s_pCompilerData->obj[8 + (s_pCompilerData->obj[7] * 4)]), size);
     }
+
+    return true;
 }
 
 void CleanupMemory()
@@ -825,12 +827,19 @@ int main(int argc, char* argv[])
     {
         unsigned char* pBuffer = NULL;
         int bufferSize = 0;
-        ComposeRAM(&pBuffer, bufferSize, bDATonly, bBinary, eeprom_size);
-        FILE* pFile = fopen(outputFilename, "wb");
-        if (pFile)
+        if (ComposeRAM(&pBuffer, bufferSize, bDATonly, bBinary, eeprom_size))
         {
-            fwrite(pBuffer, bufferSize, 1, pFile);
-            fclose(pFile);
+            FILE* pFile = fopen(outputFilename, "wb");
+            if (pFile)
+            {
+                fwrite(pBuffer, bufferSize, 1, pFile);
+                fclose(pFile);
+            }
+        }
+        else
+        {
+            CleanupMemory();
+            return 1;
         }
 
         if (!bQuiet)

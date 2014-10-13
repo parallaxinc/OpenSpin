@@ -41,9 +41,9 @@
 #define language_version    '0'
 #define loc_limit           0x8000
 #define var_limit           0x8000
-#define min_obj_limit       0x0000F000
+#define min_obj_limit       0x00020000
 #define file_limit          32
-#define data_limit          0x10000
+#define data_limit          0x20000
 #define info_limit          1000
 #define distiller_limit     0x4000
 #define symbol_limit        256 // was 32 

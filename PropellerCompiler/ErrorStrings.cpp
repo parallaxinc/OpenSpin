@@ -101,7 +101,7 @@ const char* g_pErrorStrings[] =
     "Object count must be from 1 to 255",
     "Object distiller overflow",
     "Origin exceeds FIT limit",
-    "Object exceeds 32k",
+    "Object exceeds 128k (before distilling)",
     "Origin exceeds $1F0 limit",
     "\"$\" is not allowed here",
     "OTHER must be last case",
