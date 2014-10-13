@@ -288,7 +288,7 @@ bool CompileDatBlocks_AsmDirective(bool bSymbol, bool& bResSymbol, int& size)
                     }
                 }
                 fit <<= 2;
-                if (g_pCompilerData->cog_org > fit)
+                if ((unsigned int)(g_pCompilerData->cog_org) > (unsigned int)fit)
                 {
                     g_pCompilerData->error = true;
                     g_pCompilerData->error_msg = g_pErrorStrings[error_oefl];
