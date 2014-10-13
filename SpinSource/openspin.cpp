@@ -20,8 +20,6 @@
 #include "textconvert.h"
 #include "preprocess.h"
 
-#define DataLimitStr        "64k"
-#define ImageLimit          32768   // Max size of Propeller Application image file
 #define ObjFileStackLimit   16
 
 #define ListLimit           2000000
@@ -39,8 +37,8 @@ static char s_filesAccessed[MAX_FILES][PATH_MAX];
 
 static void Banner(void)
 {
-    fprintf(stdout, "Propeller Spin/PASM Compiler \'OpenSpin\' (c)2012-2013 Parallax Inc. DBA Parallax Semiconductor.\n");
-    fprintf(stdout, "Version 1.00.70 Compiled on %s %s\n",__DATE__, __TIME__);
+    fprintf(stdout, "Propeller Spin/PASM Compiler \'OpenSpin\' (c)2012-2014 Parallax Inc. DBA Parallax Semiconductor.\n");
+    fprintf(stdout, "Version 1.00.71 Compiled on %s %s\n",__DATE__, __TIME__);
 }
 
 /* Usage - display a usage message and exit */
