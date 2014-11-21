@@ -13,6 +13,18 @@ The only binary differences are from the corrected handling of floating point nu
 
 As of version r41, it supports a basic [preprocessor](https://github.com/reltham/OpenSpin/wiki/Preprocessor).
 
+Build Instructions
+-------------------------
+
+Qt's `qmake` tool makes cross-platform and multi-arch support simple:
+
+```
+qmake
+make
+```
+
+An `openspin` binary will be created in the top-level directory.
+
 PropellerCompiler library
 -------------------------
 

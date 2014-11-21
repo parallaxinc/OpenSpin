@@ -1,0 +1,4 @@
+*.o
+libopenspin.a
+Makefile
+openspin
