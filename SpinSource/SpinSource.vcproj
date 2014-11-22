@@ -168,7 +168,7 @@
 	</References>
 	<Files>
 		<File
-			RelativePath=".\flexbuf.c"
+			RelativePath=".\flexbuf.cpp"
 			>
 			<FileConfiguration
 				Name="Debug|Win32"
@@ -212,7 +212,7 @@
 			>
 		</File>
 		<File
-			RelativePath=".\preprocess.c"
+			RelativePath=".\preprocess.cpp"
 			>
 			<FileConfiguration
 				Name="Debug|Win32"
