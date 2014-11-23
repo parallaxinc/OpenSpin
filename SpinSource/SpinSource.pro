@@ -1,7 +1,11 @@
+isEmpty(PREFIX):PREFIX = /usr/local
+
 TEMPLATE = app
 TARGET = ../openspin
+target.path = $${PREFIX}/bin
+INSTALLS += target
 
-LIBS = -L../PropellerCompiler -lopenspin
+LIBS = -L$${OUT_PWD}/../PropellerCompiler/ -lopenspin
 CONFIG -= qt
 
-SOURCES += *.cpp
+SOURCES += $$files(*.cpp)
