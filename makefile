@@ -20,7 +20,7 @@ OBJ=$(SRCDIR)/openspin.o \
 LIBDIR=PropellerCompiler
 LIBNAME=$(LIBDIR)/libopenspin.a
 
-all: $(LIBNAME) $(OBJ) Makefile
+all: $(LIBNAME) $(OBJ) makefile
 	$(CXX) -o $(TARGET) $(CXXFLAGS) $(OBJ) $(LIBNAME)
 
 %.o: %.cpp

@@ -27,7 +27,7 @@ OBJ=$(SRCDIR)/BlockNestStackRoutines.o \
 	$(SRCDIR)/PropellerCompiler.o \
 
 
-all: $(LIBNAME) Makefile
+all: $(LIBNAME) makefile
 
 
 $(LIBNAME): $(OBJ)
