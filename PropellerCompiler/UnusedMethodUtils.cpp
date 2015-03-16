@@ -74,7 +74,7 @@ struct IndexEntry
 
 struct CallEntry
 {
-    unsigned int objaddress;
+    unsigned char* objaddress;
     unsigned int callOffset;
     unsigned short objoffset;
     unsigned char opcode;
@@ -283,8 +283,8 @@ void InitUnusedMethodData()
 void BuildTables(unsigned char* pObject, int indent, int index)
 {
 #ifdef RPE_DEBUG
-    char *s_indent = "                                ";
 #define MAX_INDENT 32
+    char s_indent[MAX_INDENT+1] = "                                ";
 #endif
 
     if (HaveObject(pObject))
@@ -551,18 +551,18 @@ int ScanLowerOpcode(unsigned char* pOpcode, MethodUsage* pUsage, ObjectEntry* pO
             {
                 pUsage->pCalls[pUsage->nCurrCall].objnum = (unsigned char)objnum;
                 pUsage->pCalls[pUsage->nCurrCall].objoffset = pObject->pIndexTable[objnum-1].offset;
-                pUsage->pCalls[pUsage->nCurrCall].objaddress = (unsigned int)&pObject->pObject[pUsage->pCalls[pUsage->nCurrCall].objoffset];
+                pUsage->pCalls[pUsage->nCurrCall].objaddress = &pObject->pObject[pUsage->pCalls[pUsage->nCurrCall].objoffset];
 #ifdef RPE_DEBUG
-                printf(" callobj %02X:%02X (%08X)\n", pUsage->pCalls[pUsage->nCurrCall].objnum, pUsage->pCalls[pUsage->nCurrCall].pubnum, pUsage->pCalls[pUsage->nCurrCall].objaddress);
+                printf(" callobj %02X:%02X (%p)\n", pUsage->pCalls[pUsage->nCurrCall].objnum, pUsage->pCalls[pUsage->nCurrCall].pubnum, pUsage->pCalls[pUsage->nCurrCall].objaddress);
 #endif
             }
             else
             {
                 pUsage->pCalls[pUsage->nCurrCall].objnum = 0;
                 pUsage->pCalls[pUsage->nCurrCall].objoffset = 0;
-                pUsage->pCalls[pUsage->nCurrCall].objaddress = (unsigned int)(pObject->pObject);
+                pUsage->pCalls[pUsage->nCurrCall].objaddress = (pObject->pObject);
 #ifdef RPE_DEBUG
-                printf(" call %02X (%08X)\n", pUsage->pCalls[pUsage->nCurrCall].pubnum, pUsage->pCalls[pUsage->nCurrCall].objaddress);
+                printf(" call %02X (%p)\n", pUsage->pCalls[pUsage->nCurrCall].pubnum, pUsage->pCalls[pUsage->nCurrCall].objaddress);
 #endif
             }
             pUsage->nCurrCall++;
@@ -819,7 +819,7 @@ void MarkCalls(MethodUsage* pMethod, ObjectEntry* pObject)
             }
             else // obj call
             {
-                ObjectEntry* pSubObject = GetObject((unsigned char*)(pCall->objaddress));
+                ObjectEntry* pSubObject = GetObject(pCall->objaddress);
                 MarkCalls(&(pSubObject->pMethods[pCall->pubnum-1]), pSubObject);
             }
         }
