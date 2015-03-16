@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////
 //                                                          //
 // Propeller Spin/PASM Compiler                             //
-// (c)2012-2015 Parallax Inc. DBA Parallax Semiconductor.   //
+// (c)2012 Parallax Inc. DBA Parallax Semiconductor.        //
 // Adapted from Chip Gracey's x86 asm code by Roy Eltham    //
 // See end of file for terms of use.                        //
 //                                                          //
@@ -19,7 +19,6 @@
 #include "SymbolEngine.h"
 #include "Elementizer.h"
 #include "ErrorStrings.h"
-#include "UnusedMethodUtils.h"
 
 //////////////////////////////////////////
 // declarations for internal functions
@@ -461,7 +460,7 @@ bool CompileConBlocks(int pass)
     return true;
 }
 
-bool CompileSubBlocksId_Compile(int blockType, bool &bFirst, int &nMethodIndex)
+bool CompileSubBlocksId_Compile(int blockType, bool &bFirst)
 {
     bool bEof = false;
     g_pElementizer->Reset();
@@ -632,40 +631,36 @@ bool CompileSubBlocksId_Compile(int blockType, bool &bFirst, int &nMethodIndex)
                         }
                     }
 
-                    if (!g_pCompilerData->bFinalCompile || IsMethodUsed(g_pCompilerData->current_filename, nMethodIndex))
-                    {
-                        // enter sub symbol
-                        int value = params;
-                        value <<= 8;
-                        value |= (g_pCompilerData->obj_ptr >> 2) & 0xFF;
-                        g_pSymbolEngine->AddSymbol(g_pCompilerData->symbolBackup, type_sub, value, blockType);
+                    // enter sub symbol
+                    int value = params;
+                    value <<= 8;
+                    value |= (g_pCompilerData->obj_ptr >> 2) & 0xFF;
+                    g_pSymbolEngine->AddSymbol(g_pCompilerData->symbolBackup, type_sub, value, blockType);
 #ifdef RPE_DEBUG
-                        printf("Pub/Pri %s %d (%d, %d)\n", g_pCompilerData->symbolBackup, value, params, g_pCompilerData->obj_ptr);
+                    printf("Pub/Pri %s %d (%d, %d)\n", g_pCompilerData->symbolBackup, value, params, g_pCompilerData->obj_ptr);
 #endif
-                        if (!g_pCompilerData->bDATonly)
-                        {
-                            // enter locals count into index (shifted up 16 to leave space for the sub offset which will be fixed up later)
-                            EnterObjLong(locals<<16);
-                        }
+                    if (!g_pCompilerData->bDATonly)
+                    {
+                        // enter locals count into index
+                        EnterObjLong(locals<<16);
+                    }
 
-                        if (blockType == block_pub)
+                    if (blockType == block_pub)
+                    {
+                        if (!AddSymbolToPubConList())
                         {
-                            if (!AddSymbolToPubConList())
-                            {
-                                return false;
-                            }
-                            if (!AddPubConListByte(params))
-                            {
-                                return false;
-                            }
+                            return false;
                         }
-                        if (bFirst == false)
+                        if (!AddPubConListByte(params))
                         {
-                            g_pCompilerData->first_pub_parameters = params;
-                            bFirst = true;
+                            return false;
                         }
                     }
-                    nMethodIndex++;
+                    if (bFirst == false)
+                    {
+                        g_pCompilerData->first_pub_parameters = params;
+                        bFirst = true;
+                    }
                 }
                 else
                 {
@@ -687,8 +682,7 @@ bool CompileSubBlocksId_Compile(int blockType, bool &bFirst, int &nMethodIndex)
 bool CompileSubBlocksId()
 {
     bool bFirst = false;
-    int nMethodIndex = 0;
-    if (!CompileSubBlocksId_Compile(block_pub, bFirst, nMethodIndex))
+    if (!CompileSubBlocksId_Compile(block_pub, bFirst))
     {
         return false;
     }
@@ -699,7 +693,7 @@ bool CompileSubBlocksId()
         g_pCompilerData->source_start = g_pCompilerData->source_finish;
         return false;
     }
-    if (!CompileSubBlocksId_Compile(block_pri, bFirst, nMethodIndex))
+    if (!CompileSubBlocksId_Compile(block_pri, bFirst))
     {
         return false;
     }
@@ -712,7 +706,6 @@ bool CompileObjBlocksId()
     g_pCompilerData->obj_start = g_pCompilerData->obj_ptr;
     g_pCompilerData->obj_count = 0;
     g_pCompilerData->obj_files = 0;
-    g_pCompilerData->unused_obj_files = 0;
 
     bool bEof = false;
     g_pElementizer->Reset();
@@ -777,52 +770,41 @@ bool CompileObjBlocksId()
                     {
                         return false;
                     }
-                    if ( !g_pCompilerData->bFinalCompile || IsObjectUsed(&g_pCompilerData->obj_filenames[objFileIndex<<8]) )
-                    {
-                        // is it a new obj?
-                        if (objFileIndex == (g_pCompilerData->obj_files - 1))
-                        {
-                            // reset instances
-                            g_pCompilerData->obj_instances[objFileIndex] = 0;
-                        }
 
-                        // enter obj symbol
-                        int value = objFileIndex;
-                        value <<= 8;
-                        value |= (g_pCompilerData->obj_ptr >> 2) & 0xFF;
-                        g_pSymbolEngine->AddSymbol(g_pCompilerData->symbolBackup, type_obj, value);
+                    // is it a new obj?
+                    if (objFileIndex == (g_pCompilerData->obj_files - 1))
+                    {
+                        // reset instances
+                        g_pCompilerData->obj_instances[objFileIndex] = 0;
+                    }
+
+                    // enter obj symbol
+                    int value = objFileIndex;
+                    value <<= 8;
+                    value |= (g_pCompilerData->obj_ptr >> 2) & 0xFF;
+                    g_pSymbolEngine->AddSymbol(g_pCompilerData->symbolBackup, type_obj, value);
 #ifdef RPE_DEBUG
-                        printf("Obj %s %d (%d, %d)\n", g_pCompilerData->symbolBackup, value, instanceCount, g_pCompilerData->obj_ptr);
+                    printf("Obj %s %d (%d, %d)\n", g_pCompilerData->symbolBackup, value, instanceCount, g_pCompilerData->obj_ptr);
 #endif
 
-                        for (int i=0; i < instanceCount; i++)
-                        {
-                            if (g_pCompilerData->obj_ptr < 256*4)
-                            {
-                                // enter object index into table
-                                EnterObjLong(objFileIndex);
-                                g_pCompilerData->obj_count++;
-                            }
-                            else
-                            {
-                                g_pCompilerData->error = true;
-                                g_pCompilerData->error_msg = g_pErrorStrings[error_loxspoe];
-                                return false;
-                            }
-                        }
-
-                        // accumulate instances
-                        g_pCompilerData->obj_instances[objFileIndex] += instanceCount;
-                    }
-                    else
+                    for (int i=0; i < instanceCount; i++)
                     {
-                        strcpy(&(g_pCompilerData->obj_unused[g_pCompilerData->unused_obj_files<<8]), &(g_pCompilerData->obj_filenames[objFileIndex<<8]));
-                        int value = g_pCompilerData->unused_obj_files | 0x40;
-                        value <<= 8;
-                        g_pSymbolEngine->AddSymbol(g_pCompilerData->symbolBackup, type_obj, value);
-                        g_pCompilerData->unused_obj_files++;
-                        g_pCompilerData->obj_files--;
+                        if (g_pCompilerData->obj_ptr < 256*4)
+                        {
+                            // enter locals count into index
+                            EnterObjLong(objFileIndex);
+                            g_pCompilerData->obj_count++;
+                        }
+                        else
+                        {
+                            g_pCompilerData->error = true;
+                            g_pCompilerData->error_msg = g_pErrorStrings[error_loxspoe];
+                            return false;
+                        }
                     }
+
+                    // accumulate instances
+                    g_pCompilerData->obj_instances[objFileIndex] += instanceCount;
 
                     if (!g_pElementizer->GetElement(type_end))
                     {
@@ -976,8 +958,8 @@ bool CompileObjSymbols()
 #ifdef RPE_DEBUG
                         printf("objpub: %s %d \n", g_pCompilerData->symbolBackup, value);
 #endif
-                        nPub++;
                         pData++; // adjust pointer to after param count
+                        nPub++;
                         break;
                     }
                     else	// handle objcon or objcon_float symbol
@@ -997,53 +979,6 @@ bool CompileObjSymbols()
             {
                 CompileObjSymbol_BadObj(nFile);
                 return false;
-            }
-        }
-    }
-
-    // now add any CON symbols from unused objects
-    for (int nUnusedFile = 0; nUnusedFile < g_pCompilerData->unused_obj_files; nUnusedFile++)
-    {
-        unsigned char* pData = 0;
-        int nDataSize = 0;
-        if (GetObjectPubConList(&(g_pCompilerData->obj_unused[nUnusedFile<<8]), &pData, &nDataSize))
-        {
-            unsigned char *pDataEnd = pData + nDataSize;
-            // go thru symbols validating them and adding them to the symbol table
-            while (pData < pDataEnd)
-            {
-                for (int i = 0; i < symbol_limit+1; i++)
-                {
-                    if (!CheckWordChar((char)(*pData)))
-                    {
-                        CompileObjSymbol_BadObj(nFile);
-                        return false;
-                    }
-                    g_pCompilerData->symbolBackup[i] = (char)(*pData);
-                    pData++;
-                    if (pData[0] < 18) // 0 to 15 = pub param count, 16 and 17 are constants
-                    {
-                        g_pCompilerData->symbolBackup[i+1] = (char)(0x40 | (nUnusedFile + 1));
-                        g_pCompilerData->symbolBackup[i+2] = 0;
-                        if (pData[0] < 16) // handle objpub symbol
-                        {
-                            // we don't add pubs in this case
-                            pData++; // adjust pointer to after param count
-                            break;
-                        }
-                        else	// handle objcon or objcon_float symbol
-                        {
-                            int value = (int)pData[1] | ((int)pData[2] << 8)  | ((int)pData[3] << 16)  | ((int)pData[4] << 24);
-                            g_pSymbolEngine->AddSymbol(g_pCompilerData->symbolBackup, (pData[0] == 16) ? type_objcon : type_objcon_float, value);
-#ifdef RPE_DEBUG
-                            float fValue = *((float*)(&value));
-                            printf("objcon: %s %d %f *\n", g_pCompilerData->symbolBackup, value, fValue);
-#endif
-                            pData+=5; // adjust pointer to after value
-                            break;
-                        }
-                    }
-                }
             }
         }
     }
@@ -1182,7 +1117,7 @@ bool CompileVarBlocks()
     return true;
 }
 
-bool CompileSubBlocks_Compile(int blockType, int &subCount, int &nMethodIndex)
+bool CompileSubBlocks_Compile(int blockType, int &subCount)
 {
     bool bEof = false;
     g_pElementizer->Reset();
@@ -1375,36 +1310,33 @@ bool CompileSubBlocks_Compile(int blockType, int &subCount, int &nMethodIndex)
                     }
                 }
 
-                if (!g_pCompilerData->bFinalCompile || IsMethodUsed(g_pCompilerData->current_filename, nMethodIndex))
+                // enter sub offset into index
+                *((short*)&(g_pCompilerData->obj[4 + (subCount * 4)])) = (short)g_pCompilerData->obj_ptr;
+
+                if (!CompileTopBlock()) // instruction block compiler
                 {
-                    // enter sub offset into index
-                    *((short*)&(g_pCompilerData->obj[4 + (subCount * 4)])) = (short)g_pCompilerData->obj_ptr;
-
-                    if (!CompileTopBlock()) // instruction block compiler
-                    {
-                        return false;
-                    }
-
-                    g_pCompilerData->inf_start = saved_inf_start;
-                    g_pCompilerData->inf_finish = g_pElementizer->GetSourcePtr();
-                    g_pCompilerData->inf_data0 = saved_inf_data0;
-                    g_pCompilerData->inf_data1 = g_pCompilerData->obj_ptr;
-                    g_pCompilerData->inf_data2 = saved_inf_data2;
-                    g_pCompilerData->inf_data3 = saved_inf_data3;
-                    g_pCompilerData->inf_data4 = (paramCount << 16) | subCount;
-                    if (blockType == block_pub)
-                    {
-                        g_pCompilerData->inf_type = info_pub;
-                    }
-                    else
-                    {
-                        g_pCompilerData->inf_type = info_pri;
-                    }
-                    EnterInfo();
-
-                    subCount++;
+                    return false;
                 }
-                nMethodIndex++;
+
+                g_pCompilerData->inf_start = saved_inf_start;
+                g_pCompilerData->inf_finish = g_pElementizer->GetSourcePtr();
+                g_pCompilerData->inf_data0 = saved_inf_data0;
+                g_pCompilerData->inf_data1 = g_pCompilerData->obj_ptr;
+                g_pCompilerData->inf_data2 = saved_inf_data2;
+                g_pCompilerData->inf_data3 = saved_inf_data3;
+                g_pCompilerData->inf_data4 = (paramCount << 16) | subCount;
+                if (blockType == block_pub)
+                {
+                    g_pCompilerData->inf_type = info_pub;
+                }
+                else
+                {
+                    g_pCompilerData->inf_type = info_pri;
+                }
+                EnterInfo();
+
+                subCount++;
+
                 g_pSymbolEngine->Reset(true); // cancel local symbols
             }
         }
@@ -1420,12 +1352,11 @@ bool CompileSubBlocks_Compile(int blockType, int &subCount, int &nMethodIndex)
 bool CompileSubBlocks()
 {
     int subCount = 0;
-    int nMethodIndex = 0;
-    if (!CompileSubBlocks_Compile(block_pub, subCount, nMethodIndex))
+    if (!CompileSubBlocks_Compile(block_pub, subCount))
     {
         return false;
     }
-    if (!CompileSubBlocks_Compile(block_pri, subCount, nMethodIndex))
+    if (!CompileSubBlocks_Compile(block_pri, subCount))
     {
         return false;
     }
@@ -1552,11 +1483,6 @@ bool CompileFinal()
         if (!EnterObj(0)) //placeholder for checksum;
         {
             return false;
-        }
-
-        if (!g_pCompilerData->bFinalCompile)
-        {
-            AddObjectPubConList(g_pCompilerData->current_filename, g_pCompilerData->pubcon_list, g_pCompilerData->pubcon_list_size);
         }
 
         // copy pubcon_list into obj (RPE: this could be optimized)
@@ -1880,7 +1806,7 @@ bool CompileDoc_ScanInterface(bool bPrint, int& nCount)
     char currentChar = CompileDoc_ScanSkip(scanPtr);
     if (currentChar == '(')
     {
-        for (;;)
+        while (1)
         {
             currentChar = g_pCompilerData->source[scanPtr++];
             nCount++;

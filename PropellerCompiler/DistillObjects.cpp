@@ -34,9 +34,6 @@ bool DistillSetup_Enter(unsigned short value)
     return true;
 }
 
-// create a table of all objects with their offsets and sub objects
-// each entry contains:
-// id, offset, number sub objects, [sub object ids]
 bool DistillSetup_Record(short id, unsigned short offset, unsigned short& subObjectId)
 {
     if (!DistillSetup_Enter(id))
@@ -86,9 +83,6 @@ bool DistillSetup()
         return false;
     }
 
-    // Clear all the objects table of offsets to their sub objects
-    // this needs to be done so that objects will binary compare with each other properly
-    // these offsets get replaced in the reconnect step
     int disPtr = 0;
     while (disPtr < g_pCompilerData->dis_ptr)
     {
@@ -115,8 +109,6 @@ bool DistillSetup()
     return true;
 }
 
-// update all objects of the given id to the new id
-// also flags them as "distilled" with the upper bit being on
 void DistillEliminate_Update(unsigned short objectId, int newDisPtr)
 {
     int disPtr = 0;
@@ -275,7 +267,7 @@ void DistillReconnect(int disPtr = 0)
 
             // find offset of sub-object
             int scanDisPtr = 0;
-            for (;;)
+            while(1)
             {
                 if (g_pCompilerData->dis[scanDisPtr] == subObjectId)
                 {

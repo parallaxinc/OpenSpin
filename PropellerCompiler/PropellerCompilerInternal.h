@@ -100,6 +100,7 @@ struct CompilerDataInternal : public CompilerData
     int             bstack_ptr;
     int             bstack_base[block_nest_limit];
     int             bstack[block_stack_limit];
+
 };
 
 class Elementizer;

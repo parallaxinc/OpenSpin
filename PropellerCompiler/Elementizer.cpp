@@ -96,7 +96,7 @@ bool Elementizer::GetNext(bool& bEof)
     m_currentSymbol[0] = 0;
     int symbolOffset = 0;
 
-    for (;;)
+    while(1)
     {
         char currentChar = pSource[m_sourceOffset++];
 
@@ -281,7 +281,7 @@ bool Elementizer::GetNext(bool& bEof)
                 bDocComment = true;
                 g_pCompilerData->doc_flag = true;
             }
-            for (;;)
+            while(1)
             {
                 currentChar = pSource[m_sourceOffset++];
                 if (currentChar == 0)
@@ -318,7 +318,7 @@ bool Elementizer::GetNext(bool& bEof)
                     m_sourceOffset++; // skip over end if present
                 }
             }
-            for (;;)
+            while(1)
             {
                 currentChar = pSource[m_sourceOffset++];
                 if (currentChar == 0)

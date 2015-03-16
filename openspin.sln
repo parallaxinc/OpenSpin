@@ -1,11 +1,12 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
-MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "openspin", "SpinSource\SpinSource.vcxproj", "{A52778A6-7ABC-4FC5-B238-A6337AB2CC1F}"
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spin", "SpinSource\SpinSource.vcproj", "{A52778A6-7ABC-4FC5-B238-A6337AB2CC1F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{DE0E4A74-1C7F-4479-918D-9040BB599F90} = {DE0E4A74-1C7F-4479-918D-9040BB599F90}
+	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PropellerCompiler", "PropellerCompiler\PropellerCompiler.vcxproj", "{DE0E4A74-1C7F-4479-918D-9040BB599F90}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PropellerCompiler", "PropellerCompiler\PropellerCompiler.vcproj", "{DE0E4A74-1C7F-4479-918D-9040BB599F90}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -155,7 +155,7 @@ bool CompileSubExpression(int precedence)
         }
     }
 
-    for (;;)
+    while (1)
     {
         bool bEof = false;
         if (!g_pElementizer->GetNext(bEof))
@@ -230,7 +230,7 @@ bool CompileTerm_ConStr()
     }
 
     // get the string into the string constant buffer
-    for (;;)
+    while(1)
     {
         if (!GetTryValue(true, false))
         {
@@ -334,7 +334,7 @@ bool CompileTerm_ObjPub(unsigned char anchor, int value)
 
     int objPubValue = g_pElementizer->GetValue();
 
-    // compile any parameters the pub has
+    // compile any paramaters the pub has
     if (!CompileParameters((objPubValue & 0x0000FF00) >> 8))
     {
         return false;
@@ -424,7 +424,7 @@ bool CompileLook(int column, int param)
     {
         return false;
     }
-    if (!CompileExpression()) // compile primary value
+    if (!CompileExpression()) // compile primarey value
     {
         return false;
     }
@@ -433,7 +433,7 @@ bool CompileLook(int column, int param)
         return false;
     }
 
-    for (;;)
+    while (1)
     {
         bool bRange = false;
         if (!CompileRange(bRange)) // compile (next) value/range

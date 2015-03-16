@@ -824,10 +824,7 @@ do_line(struct preprocess *pp)
             // because spin has the # as a valid part of it's syntax and that can be at the start of a line,
             // this isn't an error, but instead needs to be parsed like a normal line
             // first restore the line
-            if (P.save)
-            {
-                *(P.save) = (char)(P.c);
-            }
+            *(P.save) = (char)(P.c);
             r = expand_macros(pp, &pp->line, data);
         }
     }
