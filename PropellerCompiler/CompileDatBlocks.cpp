@@ -97,7 +97,7 @@ bool CompileDatBlocks_Enter(int value, int count, int size)
 bool CompileDatBlocks_Advance(bool bSymbol, bool bResSymbol, int size)
 {
     int testVal = (1 << size) - 1;
-    while (1)
+    for (;;)
     {
         if ((g_pCompilerData->obj_ptr & testVal) == 0)
         {

@@ -480,7 +480,7 @@ bool GetFilename(int& filenameStart, int& filenameFinish)
     filenameStart = g_pCompilerData->source_start;
     g_pElementizer->Backup();
 
-    while(1)
+    for (;;)
     {
         g_pElementizer->GetNext(bEof);
         if (g_pElementizer->GetType() != type_con)
@@ -498,7 +498,7 @@ bool GetFilename(int& filenameStart, int& filenameFinish)
         {
             g_pCompilerData->error = true;
             g_pCompilerData->error_msg = g_pErrorStrings[error_ifc];
-            return false;
+            break;
         }
 
         // add character
@@ -510,7 +510,7 @@ bool GetFilename(int& filenameStart, int& filenameFinish)
         {
             g_pCompilerData->error = true;
             g_pCompilerData->error_msg = g_pErrorStrings[error_ftl];
-            return false;
+            break;
         }
 
         if (!g_pElementizer->CheckElement(type_comma))

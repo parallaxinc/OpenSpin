@@ -337,7 +337,7 @@ bool CompileCase(int column, int param)
                 g_pCompilerData->error_msg = g_pErrorStrings[error_loxce];
                 return false;
             }
-            while (1)
+            for (;;)
             {
                 bool bRange = false;
                 if (!CompileRange(bRange))
@@ -442,8 +442,8 @@ bool CompileCase(int column, int param)
         }
         else
         {
-            // skip over range/values(s), allready compiled
-            while (1)
+            // skip over range/values(s), already compiled
+            for (;;)
             {
                 if (!SkipRange())
                 {
@@ -493,7 +493,7 @@ bool CompileRepeatPlain(int column, int param)
 {
     param = param; // stop warning
 
-    BlockStack_Write(2, g_pCompilerData->obj_ptr); // set revearse address
+    BlockStack_Write(2, g_pCompilerData->obj_ptr); // set reverse address
     if (!s_bHasPost)
     {
         BlockStack_Write(0, g_pCompilerData->obj_ptr); // set plain 'next' address
@@ -830,7 +830,7 @@ bool OptimizeBlock(int column, int param, bool (*pCompileFunction)(int, int))
     int savedObjPtr = g_pCompilerData->obj_ptr;
     int size = 0;
 
-    while(1)
+    for (;;)
     {
         g_pElementizer->SetSourcePtr(savedSourcePtr);
         g_pCompilerData->obj_ptr = savedObjPtr;
