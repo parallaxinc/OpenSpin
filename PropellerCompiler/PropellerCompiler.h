@@ -13,6 +13,8 @@
 #ifndef _PROPELLER_COMPILER_H_
 #define _PROPELLER_COMPILER_H_
 
+#include "UnusedMethodUtils.h"
+
 //
 // OpenSpin code uses _stricmp() which is the VC++ name for the function.
 // this needs to be remapped to stricmp or strcasecmp depending on the compiler and OS being compiled on
@@ -34,8 +36,7 @@
 #endif
 
 //
-// Everything here needs to stay in the order it is in (for the enums and struct) and remain 
-// the same size, in order to be the same as the asm code version and work with Prop Tool / Propellent
+// no longer compatible with Prop Tool / Propellent
 //
 
 #define language_version    '0'
@@ -47,11 +48,10 @@
 #define info_limit          1000
 #define distiller_limit     0x4000
 #define symbol_limit        256 // was 32 
-//#define symbol_table_limit  0x8000
-#define pubcon_list_limit   0x2000
+#define pubcon_list_limit   0x8000
 #define block_nest_limit    8
-#define block_stack_limit   256
-#define case_limit          64
+#define block_stack_limit   4096
+#define case_limit          256
 #define if_limit            16
 #define str_limit           256
 #define str_buffer_limit    0x8000
@@ -149,6 +149,11 @@ struct CompilerData
     unsigned int    vsize;                          // used to hold last vsize (in case it is greater than 65536)
     unsigned int    psize;                          // used to hold last psize (in case it is greater than 65536)
 
+    char            current_filename[256];          // name of object being compiled at the moment
+    bool            bFinalCompile;                  // set to true after unused method scan complete
+
+    int             unused_obj_files;               // number of unused object files
+    char            obj_unused[file_limit*256];     // hold filenames of unused objects
 };
 
 // public functions
