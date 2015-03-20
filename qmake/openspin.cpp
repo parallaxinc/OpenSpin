@@ -33,6 +33,10 @@
 
 #define MAX_FILES           2048    // an object can only reference 32 other objects and only 32 dat files, so the worst case is 32*32*2 files
 
+#ifndef VERSION
+#define VERSION "0.0.0"
+#endif
+
 static struct preprocess s_preprocessor;
 static CompilerData* s_pCompilerData = NULL;
 static bool s_bUsePreprocessor = false;
@@ -484,16 +488,15 @@ int main(int argc, char* argv[])
     QCoreApplication::setApplicationName("OpenSpin");
     QCoreApplication::setOrganizationName("Parallax");
     QCoreApplication::setOrganizationDomain("www.parallax.com");
-    QCoreApplication::setApplicationVersion("0.71111");
+    QCoreApplication::setApplicationVersion(VERSION);
 
     QCommandLineParser parser;
     parser.addHelpOption();
     parser.addVersionOption();
 
     parser.setApplicationDescription(
-            "\n"+QCoreApplication::applicationName()
-            + QObject::tr(" - An open-source compiler for Propeller Spin\n"
-                "Copyright © 2012-2015 Parallax, Inc."));
+            QObject::tr("\nAn open-source compiler for Propeller Spin"
+                        "\nCopyright © 2012-2015 Parallax, Inc."));
 
     QCommandLineOption includeDirectory(    QStringList() << "I" << "L",            QObject::tr("Add a directory to the include path"),             QObject::tr("DIR"));
     QCommandLineOption outputFile(          QStringList() << "o" << "output",       QObject::tr("Output filename"),                                 QObject::tr("FILE"));

@@ -32,6 +32,7 @@ SOURCES += \
     ../PropellerCompiler/PropellerCompiler.cpp \
     ../PropellerCompiler/StringConstantRoutines.cpp \
     ../PropellerCompiler/SymbolEngine.cpp \
+	../PropellerCompiler/UnusedMethodUtils.cpp \
     ../PropellerCompiler/Utilities.cpp \
     ../SpinSource/flexbuf.cpp \
     ../SpinSource/objectheap.cpp \
