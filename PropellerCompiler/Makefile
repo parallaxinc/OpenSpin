@@ -24,6 +24,7 @@ OBJ=$(SRCDIR)/BlockNestStackRoutines.o \
 	$(SRCDIR)/StringConstantRoutines.o \
 	$(SRCDIR)/SymbolEngine.o \
 	$(SRCDIR)/Utilities.o \
+	$(SRCDIR)/UnusedMethodUtils.o \
 	$(SRCDIR)/PropellerCompiler.o \
 
 

@@ -36,7 +36,7 @@ bool CompileInst_NextQuit(int value)
     int caseDepth = 0;
 
     // find repeat block
-    while(1)
+    for (;;)
     {
         if (blockNestPtr == 0)
         {

@@ -26,9 +26,6 @@ all: $(LIBNAME) $(OBJ) Makefile
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -o $@ -c $<
 
-%.o: %.c
-	$(CXX) $(CXXFLAGS) -o $@ -c $<
-
 $(LIBNAME):
 	$(MAKE) -C $(LIBDIR) all
 
