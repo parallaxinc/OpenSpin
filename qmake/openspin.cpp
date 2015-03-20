@@ -44,6 +44,7 @@ static bool s_bAlternatePreprocessorMode  = false;
 static int  s_nObjStackPtr = 0;
 static int  s_nFilesAccessed = 0;
 static char s_filesAccessed[MAX_FILES][PATH_MAX];
+static bool s_bFinalCompile = false;
 
 FILE* OpenFileInPath(const char *name, const char *mode)
 {
@@ -255,6 +256,18 @@ bool CompileRecursively(char* pFilename, bool bQuiet, bool bFileTreeOutputOnly)
         return false;
     }
 
+    if ( !s_pCompilerData->bFinalCompile )
+    {
+        AddObjectName(pFilename, s_nObjStackPtr);
+    }
+
+    strcpy(s_pCompilerData->current_filename, pFilename);
+    char* pExtension = strstr(s_pCompilerData->current_filename, ".spin");
+    if (pExtension != 0)
+    {
+        *pExtension = 0;
+    }
+
     // first pass on object
     const char* pErrorString = Compile1();
     if (pErrorString != 0)
@@ -298,6 +311,12 @@ bool CompileRecursively(char* pFilename, bool bQuiet, bool bFileTreeOutputOnly)
             return false;
         }
 
+        strcpy(s_pCompilerData->current_filename, pFilename);
+        char* pExtension = strstr(s_pCompilerData->current_filename, ".spin");
+        if (pExtension != 0)
+        {
+            *pExtension = 0;
+        }
         pErrorString = Compile1();
         if (pErrorString != 0)
         {
@@ -342,6 +361,12 @@ bool CompileRecursively(char* pFilename, bool bQuiet, bool bFileTreeOutputOnly)
     }
 
     // second pass of object
+    strcpy(s_pCompilerData->current_filename, pFilename);
+    pExtension = strstr(s_pCompilerData->current_filename, ".spin");
+    if (pExtension != 0)
+    {
+        *pExtension = 0;
+    }
     pErrorString = Compile2();
     if (pErrorString != 0)
     {
@@ -448,7 +473,7 @@ bool ComposeRAM(unsigned char** ppBuffer, int& bufferSize, bool bDATonly, bool b
     return true;
 }
 
-void CleanupMemory()
+void CleanupMemory(bool bPathsAndUnusedMethodData = true)
 {
     // cleanup
     if ( s_pCompilerData )
@@ -459,7 +484,11 @@ void CleanupMemory()
         delete [] s_pCompilerData->source;
     }
     CleanObjectHeap();
-    CleanupPathEntries();
+    if (bPathsAndUnusedMethodData)
+    {
+        CleanupPathEntries();
+        CleanUpUnusedMethodData();
+    }
     Cleanup();
 }
 
@@ -482,6 +511,7 @@ int main(int argc, char* argv[])
     bool bFileTreeOutputOnly = false;
     bool bFileListOutputOnly = false;
     bool bDumpSymbols = false;
+    bool bUnusedMethodElimination = false;
 
     QCoreApplication app(argc, argv);
 
@@ -519,6 +549,7 @@ int main(int argc, char* argv[])
     QCommandLineOption usePreprocessor(     QStringList() << "p" << "preprocessor", QObject::tr("Use preprocessor"));
     QCommandLineOption useAlternatePP(      QStringList() << "a" << "alternate",    QObject::tr("Use alternate preprocessor rules"));
     QCommandLineOption symbolInformation(   QStringList() << "s" << "symbol",       QObject::tr("Dump PUB & CON symbol information for top object"));
+    QCommandLineOption unusedMethodRemoval( QStringList() << "u" << "unused",       QObject::tr("Enable unused method removal (EXPERIMENTAL!)"));
 
     parser.addOption(outputBinary);
     parser.addOption(outputEEPROM);
@@ -531,6 +562,7 @@ int main(int argc, char* argv[])
     parser.addOption(usePreprocessor);
     parser.addOption(useAlternatePP);
     parser.addOption(symbolInformation);
+    parser.addOption(unusedMethodRemoval);
 
     parser.addPositionalArgument("object",  QObject::tr("Spin file to compile"), "OBJECT");
 
@@ -548,7 +580,7 @@ int main(int argc, char* argv[])
     if (parser.isSet(usePreprocessor))      s_bUsePreprocessor = true;
     if (parser.isSet(useAlternatePP))       s_bAlternatePreprocessorMode = true;
     if (parser.isSet(symbolInformation))    bDumpSymbols = true;
-
+    if (parser.isSet(unusedMethodRemoval))  bUnusedMethodElimination = true;
 
     QByteArray ba = parser.value(outputFile).toLocal8Bit();
     if (!parser.value(outputFile).isEmpty())
@@ -675,7 +707,10 @@ int main(int argc, char* argv[])
         printf("%s\n", infile);
     }
 
+    InitUnusedMethodData();
+restart_compile:
     s_pCompilerData = InitStruct();
+    s_pCompilerData->bFinalCompile = s_bFinalCompile;
 
     s_pCompilerData->list = new char[ListLimit];
     s_pCompilerData->list_limit = ListLimit;
@@ -721,6 +756,13 @@ int main(int argc, char* argv[])
 
     if (!bFileTreeOutputOnly && !bFileListOutputOnly && !bDumpSymbols)
     {
+        if (!s_bFinalCompile && bUnusedMethodElimination)
+        {
+            FindUnusedMethods(s_pCompilerData);
+            s_bFinalCompile = true;
+            CleanupMemory(false);
+            goto restart_compile;
+        }
         unsigned char* pBuffer = NULL;
         int bufferSize = 0;
         if (ComposeRAM(&pBuffer, bufferSize, bDATonly, bBinary, eeprom_size))
