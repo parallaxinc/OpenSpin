@@ -27,7 +27,7 @@ all: $(LIBNAME) $(OBJ) Makefile
 	$(CXX) $(CXXFLAGS) -o $@ -c $<
 
 $(LIBNAME):
-	make -C $(LIBDIR) all
+	$(MAKE) -C $(LIBDIR) all
 
 clean:
 	rm -rf $(OBJ) $(LIBNAME) $(TARGET).exe
