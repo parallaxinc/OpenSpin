@@ -1,43 +1,62 @@
+# cross compilation scheme taken from Eric Smith's spin2cpp compiler
+# if CROSS is defined, we are building a cross compiler
+# possible targets are: win32, rpi
+
+ifeq ($(CROSS),win32)
+  CC=i586-mingw32msvc-gcc
+  CXX=i586-mingw32msvc-g++
+  EXT=.exe
+  BUILD=./build-win32
+else ifeq ($(CROSS),rpi)
+  CC=arm-linux-gnueabihf-gcc
+  CXX=arm-linux-gnueabihf-g++
+  EXT=
+  BUILD=./build-rpi
+else
+  CC=gcc
+  CXX=g++
+  EXT=
+  BUILD=./build
+endif
+
 OS:=$(shell uname)
-CC=gcc
-CXX=g++
+
 ifeq ($(OS),Darwin)
-	CFLAGS+=-Wall -g
+	CFLAGS+=-Wall -g -Wno-self-assign
 else
 	CFLAGS+=-Wall -g -static
 endif
 CXXFLAGS += $(CFLAGS)
 
 
-LIBNAME=libopenspin.a
+LIBNAME=$(BUILD)/libopenspin.a
 SRCDIR=.
-OBJ=$(SRCDIR)/BlockNestStackRoutines.o \
-	$(SRCDIR)/CompileDatBlocks.o \
-	$(SRCDIR)/CompileExpression.o \
-	$(SRCDIR)/CompileInstruction.o \
-	$(SRCDIR)/CompileUtilities.o \
-	$(SRCDIR)/DistillObjects.o \
-	$(SRCDIR)/Elementizer.o \
-	$(SRCDIR)/ErrorStrings.o \
-	$(SRCDIR)/ExpressionResolver.o \
-	$(SRCDIR)/InstructionBlockCompiler.o \
-	$(SRCDIR)/StringConstantRoutines.o \
-	$(SRCDIR)/SymbolEngine.o \
-	$(SRCDIR)/Utilities.o \
-	$(SRCDIR)/UnusedMethodUtils.o \
-	$(SRCDIR)/PropellerCompiler.o \
+OBJ=$(BUILD)/BlockNestStackRoutines.o \
+	$(BUILD)/CompileDatBlocks.o \
+	$(BUILD)/CompileExpression.o \
+	$(BUILD)/CompileInstruction.o \
+	$(BUILD)/CompileUtilities.o \
+	$(BUILD)/DistillObjects.o \
+	$(BUILD)/Elementizer.o \
+	$(BUILD)/ErrorStrings.o \
+	$(BUILD)/ExpressionResolver.o \
+	$(BUILD)/InstructionBlockCompiler.o \
+	$(BUILD)/StringConstantRoutines.o \
+	$(BUILD)/SymbolEngine.o \
+	$(BUILD)/Utilities.o \
+	$(BUILD)/UnusedMethodUtils.o \
+	$(BUILD)/PropellerCompiler.o \
 
-
-all: $(LIBNAME) Makefile
-
+all: $(BUILD) $(LIBNAME) Makefile
 
 $(LIBNAME): $(OBJ)
 	$(AR) rs $@ $^
 
-
-%.o: %.cpp
+$(BUILD)/%.o: $(SRCDIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -o $@ -c $<
 
+$(BUILD):
+	mkdir -p $(BUILD)
 
 clean:
-	rm -rf $(SRCDIR)/*.o $(LIBNAME)
+	rm -rf $(BUILD)
