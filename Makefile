@@ -38,8 +38,7 @@ OBJ=$(BUILD)/openspin.o \
 	$(BUILD)/pathentry.o \
 	$(BUILD)/objectheap.o
 
-LIBDIR=./PropellerCompiler
-LIBNAME=$(LIBDIR)/$(BUILD)/libopenspin.a
+LIBNAME=$(BUILD)/PropellerCompiler/libopenspin.a
 
 all: $(BUILD) $(LIBNAME) $(OBJ) Makefile
 	$(CXX) -o $(TARGET) $(CXXFLAGS) $(OBJ) $(LIBNAME)
@@ -48,11 +47,11 @@ $(BUILD)/%.o: $(SRCDIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -o $@ -c $<
 
 $(LIBNAME):
-	make -C $(LIBDIR) CROSS=$(CROSS) all
+	make -C PropellerCompiler CROSS=$(CROSS) BUILD=$(BUILD)/PropellerCompiler all
 
 $(BUILD):
 	mkdir -p $(BUILD)
 
 clean:
 	rm -rf $(BUILD)
-	make -C $(LIBDIR) clean
+	make -C PropellerCompiler BUILD=$(BUILD)/PropellerCompiler clean
