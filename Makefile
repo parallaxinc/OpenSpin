@@ -47,11 +47,11 @@ $(BUILD)/%.o: $(SRCDIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -o $@ -c $<
 
 $(LIBNAME):
-	make -C PropellerCompiler CROSS=$(CROSS) BUILD=$(BUILD)/PropellerCompiler all
+	make -C PropellerCompiler CROSS=$(CROSS) BUILD=$(realpath $(BUILD))/PropellerCompiler all
 
 $(BUILD):
 	mkdir -p $(BUILD)
 
 clean:
 	rm -rf $(BUILD)
-	make -C PropellerCompiler BUILD=$(BUILD)/PropellerCompiler clean
+	make -C PropellerCompiler BUILD=$(realpath $(BUILD))/PropellerCompiler clean
