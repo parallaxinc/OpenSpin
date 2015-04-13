@@ -28,7 +28,6 @@ else
 endif
 CXXFLAGS += $(CFLAGS)
 
-
 LIBNAME=$(BUILD)/libopenspin.a
 SRCDIR=.
 OBJ=$(BUILD)/BlockNestStackRoutines.o \

@@ -46,8 +46,8 @@ all: $(BUILD) $(LIBNAME) $(OBJ) Makefile
 $(BUILD)/%.o: $(SRCDIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -o $@ -c $<
 
-$(LIBNAME):
-	make -C PropellerCompiler CROSS=$(CROSS) BUILD=$(realpath $(BUILD))/PropellerCompiler all
+$(LIBNAME): $(BUILD)
+	$(MAKE) -C PropellerCompiler CROSS=$(CROSS) BUILD=$(realpath $(BUILD))/PropellerCompiler all
 
 $(BUILD):
 	mkdir -p $(BUILD)
