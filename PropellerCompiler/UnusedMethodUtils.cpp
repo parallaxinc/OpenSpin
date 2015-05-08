@@ -27,7 +27,7 @@ struct ObjectNameEntry
     int indent;
 };
 
-ObjectNameEntry s_objectNames[128];
+ObjectNameEntry s_objectNames[file_limit * file_limit];
 int s_nNumObjectNames = 0;
 
 void AddObjectName(char* pFilename, int indent)
@@ -105,7 +105,7 @@ struct ObjectEntry
     MethodUsage* pMethods;
 };
   
-ObjectEntry s_objects[file_limit];
+ObjectEntry s_objects[file_limit * file_limit];
 int s_nNumObjects;
 
 bool HaveObject(unsigned char* pObject)
@@ -202,7 +202,7 @@ struct ObjectPubConListEntry
     int nPubConListSize;
 };
 
-ObjectPubConListEntry s_objectPubConLists[512];
+ObjectPubConListEntry s_objectPubConLists[file_limit * file_limit];
 int s_nNumObjectPubConLists;
 
 ObjectPubConListEntry* GetObjectPubConListEntryByName(char* pFilename)
@@ -270,7 +270,7 @@ void CleanUpUnusedMethodData()
 
 void InitUnusedMethodData()
 {
-    for (int i = 0; i < file_limit; i++)
+    for (int i = 0; i < (file_limit * file_limit); i++)
     {
         s_objectPubConLists[i].filename[0] = 0;
         s_objectPubConLists[i].pPubConList = 0;

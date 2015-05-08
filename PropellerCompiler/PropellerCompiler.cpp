@@ -777,7 +777,7 @@ bool CompileObjBlocksId()
                     {
                         return false;
                     }
-                    if ( !g_pCompilerData->bFinalCompile || IsObjectUsed(&g_pCompilerData->obj_filenames[objFileIndex<<8]) )
+                    if (!g_pCompilerData->bFinalCompile || IsObjectUsed(&g_pCompilerData->obj_filenames[objFileIndex<<8]))
                     {
                         // is it a new obj?
                         if (objFileIndex == (g_pCompilerData->obj_files - 1))
@@ -1554,7 +1554,7 @@ bool CompileFinal()
             return false;
         }
 
-        if (!g_pCompilerData->bFinalCompile)
+        if (!g_pCompilerData->bFinalCompile && g_pCompilerData->bUnusedMethodElimination)
         {
             AddObjectPubConList(g_pCompilerData->current_filename, g_pCompilerData->pubcon_list, g_pCompilerData->pubcon_list_size);
         }

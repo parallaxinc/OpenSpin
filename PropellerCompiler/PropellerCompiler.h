@@ -150,6 +150,7 @@ struct CompilerData
     unsigned int    psize;                          // used to hold last psize (in case it is greater than 65536)
 
     char            current_filename[256];          // name of object being compiled at the moment
+    bool            bUnusedMethodElimination;       // true if unused method elimination is on
     bool            bFinalCompile;                  // set to true after unused method scan complete
 
     int             unused_obj_files;               // number of unused object files
