@@ -815,15 +815,11 @@ int main(int argc, char* argv[])
     if ( s_bUnusedMethodElimination )
     {
         InitUnusedMethodData();
-        s_pCompilerData->bUnusedMethodElimination = true;
-    }
-    else
-    {
-        s_pCompilerData->bUnusedMethodElimination = false;
     }
 
 restart_compile:
     s_pCompilerData = InitStruct();
+    s_pCompilerData->bUnusedMethodElimination = s_bUnusedMethodElimination;
     s_pCompilerData->bFinalCompile = s_bFinalCompile;
 
     s_pCompilerData->list = new char[ListLimit];
