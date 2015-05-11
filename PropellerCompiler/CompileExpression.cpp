@@ -551,6 +551,12 @@ bool CompileTerm_CogNew(int value)
     if (g_pElementizer->GetType() == type_sub)
     {
         int subConstant = g_pElementizer->GetValue();
+
+        if (!g_pCompilerData->bFinalCompile && g_pCompilerData->bUnusedMethodElimination)
+        {
+            AddCogNewOrInit(g_pCompilerData->current_filename, subConstant);
+        }
+
         // it is a sub, so compile as cognew(subname(params),stack)
         if (!CompileParameters((g_pElementizer->GetValue() & 0x0000FF00) >> 8))
         {

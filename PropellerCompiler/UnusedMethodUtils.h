@@ -21,6 +21,8 @@ bool IsMethodUsed(char* pFilename, int nMethod);
 void AddObjectPubConList(char* pFilename, unsigned char* pPubConList, int nPubConListSize);
 bool GetObjectPubConList(char* pFilename, unsigned char** ppPubConList, int* pnPubConListSize);
 
+void AddCogNewOrInit(char* pFilename, int nSubConstant);
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 //                           TERMS OF USE: MIT License                                   //

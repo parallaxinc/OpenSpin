@@ -186,6 +186,12 @@ bool CompileInst_CogInit(int value)
 
     // compile subroutine 'cognew' (push params+index)
     int subConstant = g_pElementizer->GetValue();
+
+    if (!g_pCompilerData->bFinalCompile && g_pCompilerData->bUnusedMethodElimination)
+    {
+        AddCogNewOrInit(g_pCompilerData->current_filename, subConstant);
+    }
+
     if (!CompileParameters((g_pElementizer->GetValue() & 0x0000FF00) >> 8))
     {
         return false;
