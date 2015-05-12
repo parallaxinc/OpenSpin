@@ -38,7 +38,7 @@ static bool s_bUnusedMethodElimination = false;
 static void Banner(void)
 {
     fprintf(stdout, "Propeller Spin/PASM Compiler \'OpenSpin\' (c)2012-2015 Parallax Inc. DBA Parallax Semiconductor.\n");
-    fprintf(stdout, "Version 1.00.74 Compiled on %s %s\n",__DATE__, __TIME__);
+    fprintf(stdout, "Version 1.00.75 Compiled on %s %s\n",__DATE__, __TIME__);
 }
 
 /* Usage - display a usage message and exit */
@@ -253,8 +253,9 @@ void PrintError(const char* pFilename, const char* pErrorString)
     printf("Line:\n%s\nOffending Item: %s\n", errorLine, errorItem);
 }
 
-bool CompileRecursively(char* pFilename, bool bQuiet, bool bFileTreeOutputOnly)
+bool CompileRecursively(char* pFilename, bool bQuiet, bool bFileTreeOutputOnly, int& nCompileIndex)
 {
+    nCompileIndex++;
     if (s_nObjStackPtr > 0 && (!bQuiet || bFileTreeOutputOnly))
     {
         char spaces[] = "                              \0";
@@ -280,7 +281,7 @@ bool CompileRecursively(char* pFilename, bool bQuiet, bool bFileTreeOutputOnly)
 
     if (!s_pCompilerData->bFinalCompile  && s_bUnusedMethodElimination)
     {
-        AddObjectName(pFilename, s_nObjStackPtr);
+        AddObjectName(pFilename, nCompileIndex);
     }
 
     strcpy(s_pCompilerData->current_filename, pFilename);
@@ -315,7 +316,7 @@ bool CompileRecursively(char* pFilename, bool bQuiet, bool bFileTreeOutputOnly)
 
         for (int i = 0; i < numObjects; i++)
         {
-            if (!CompileRecursively(&filenames[i<<8], bQuiet, bFileTreeOutputOnly))
+            if (!CompileRecursively(&filenames[i<<8], bQuiet, bFileTreeOutputOnly, nCompileIndex))
             {
                 return false;
             }
@@ -853,7 +854,8 @@ restart_compile:
         *pExtension = 0;
     }
 
-    if (!CompileRecursively(infile, bQuiet, bFileTreeOutputOnly))
+    int nCompileIndex = 0;
+    if (!CompileRecursively(infile, bQuiet, bFileTreeOutputOnly, nCompileIndex))
     {
         CleanupMemory();
         return 1;

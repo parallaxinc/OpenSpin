@@ -24,13 +24,13 @@
 struct ObjectNameEntry
 {
     char filename[256];
-    int indent;
+    int nCompileIndex;
 };
 
 ObjectNameEntry s_objectNames[file_limit * file_limit];
 int s_nNumObjectNames = 0;
 
-void AddObjectName(char* pFilename, int indent)
+void AddObjectName(char* pFilename, int nCompileIndex)
 {
     strcpy(s_objectNames[s_nNumObjectNames].filename, pFilename);
 
@@ -41,22 +41,17 @@ void AddObjectName(char* pFilename, int indent)
         *pExtension = 0;
     }
 
-    s_objectNames[s_nNumObjectNames].indent = indent-1;
+    s_objectNames[s_nNumObjectNames].nCompileIndex = nCompileIndex;
     s_nNumObjectNames++;
 }
 
-int GetObjectName(int indent, int index)
+int GetObjectName(int nCompileIndex)
 {
-    int nCurrIndex = 0;
     for (int i = 0; i < s_nNumObjectNames; i++)
     {
-        if (s_objectNames[i].indent == indent)
+        if (s_objectNames[i].nCompileIndex == nCompileIndex)
         {
-            if (nCurrIndex == index)
-            {
-                return i;
-            }
-            nCurrIndex++;
+            return i;
         }
     }
     return -1;
@@ -325,7 +320,22 @@ void InitUnusedMethodData()
     s_nNumObjectNames = 0;
 }
 
-void BuildTables(unsigned char* pObject, int indent, int index)
+void AdvanceCompileIndex(unsigned char* pObject, int& nCompileIndex)
+{
+    nCompileIndex++;
+
+    int nNextObjOffset = *((unsigned short *)pObject);
+    ObjectEntry* pObjectEntry = GetObject(pObject);
+    for (int i = 0; i < pObjectEntry->nObjectIndexCount; i++)
+    {
+        if (pObjectEntry->pIndexTable[i].offset >= nNextObjOffset)
+        {
+            AdvanceCompileIndex(&(pObject[pObjectEntry->pIndexTable[i].offset]), nCompileIndex);
+        }
+    }
+}
+
+void BuildTables(unsigned char* pObject, int indent, int& nCompileIndex)
 {
 #ifdef RPE_DEBUG
 #define MAX_INDENT 32
@@ -337,10 +347,12 @@ void BuildTables(unsigned char* pObject, int indent, int index)
 #ifdef RPE_DEBUG
         printf("%sObject Already Added\n", &s_indent[MAX_INDENT-indent]);
 #endif
+        AdvanceCompileIndex(pObject, nCompileIndex);
         return;
     }
+    nCompileIndex++;
     int nNextObjOffset = *((unsigned short *)pObject);
-    int nObjectName = GetObjectName(indent, index);
+    int nObjectName = GetObjectName(nCompileIndex);
     int nObject = AddObject(pObject, nObjectName);
 
 #ifdef RPE_DEBUG
@@ -353,7 +365,7 @@ void BuildTables(unsigned char* pObject, int indent, int index)
 #ifdef RPE_DEBUG
             printf("%s Object Offset: %04d  Vars Offset: %d\n", &s_indent[MAX_INDENT-indent], s_objects[nObject].pIndexTable[i].offset, s_objects[nObject].pIndexTable[i].vars);
 #endif
-            BuildTables(&(pObject[s_objects[nObject].pIndexTable[i].offset]), indent + 1, i - s_objects[nObject].nObjectMethodCount);
+            BuildTables(&(pObject[s_objects[nObject].pIndexTable[i].offset]), indent + 1, nCompileIndex);
         }
 #ifdef RPE_DEBUG
         else
@@ -894,7 +906,8 @@ void FindUnusedMethods(CompilerData* pCompilerData)
     }
     s_nNumObjects = 0;
 
-    BuildTables(&(pCompilerData->obj[4]), 0, 0);
+    int nCompileIndex = 0;
+    BuildTables(&(pCompilerData->obj[4]), 0, nCompileIndex);
 
     for (int i = 0; i < s_nNumObjects; i++)
     {
