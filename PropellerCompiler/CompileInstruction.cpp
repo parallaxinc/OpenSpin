@@ -189,7 +189,7 @@ bool CompileInst_CogInit(int value)
 
     if (!g_pCompilerData->bFinalCompile && g_pCompilerData->bUnusedMethodElimination)
     {
-        AddCogNewOrInit(g_pCompilerData->current_filename, subConstant);
+        AddCogNewOrInit(g_pCompilerData->current_filename, subConstant & 0x000000FF);
     }
 
     if (!CompileParameters((g_pElementizer->GetValue() & 0x0000FF00) >> 8))

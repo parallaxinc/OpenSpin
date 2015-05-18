@@ -554,7 +554,7 @@ bool CompileTerm_CogNew(int value)
 
         if (!g_pCompilerData->bFinalCompile && g_pCompilerData->bUnusedMethodElimination)
         {
-            AddCogNewOrInit(g_pCompilerData->current_filename, subConstant);
+            AddCogNewOrInit(g_pCompilerData->current_filename, subConstant & 0x000000FF);
         }
 
         // it is a sub, so compile as cognew(subname(params),stack)

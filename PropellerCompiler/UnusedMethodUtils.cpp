@@ -165,7 +165,23 @@ int AddObject(unsigned char* pObject, int nObjectNameIndex)
 
 bool IsObjectUsed(char* pFilename)
 {
+    // chop off the .spin extension, saving the . char for restoring
+    char* pExtension = strstr(pFilename, ".spin");
+    char savedChar = 0;
+    if (pExtension != 0)
+    {
+        savedChar = *pExtension;
+        *pExtension = 0;
+    }
+
     ObjectEntry* pObject = GetObjectByName(pFilename);
+
+    // restore extention to passed in filename
+    if (pExtension != 0)
+    {
+        *pExtension = savedChar;
+    }
+
     if (pObject && pObject->nMethodsCalled > 0)
     {
         return true;
@@ -365,7 +381,18 @@ void BuildTables(unsigned char* pObject, int indent, int& nCompileIndex)
 #ifdef RPE_DEBUG
             printf("%s Object Offset: %04d  Vars Offset: %d\n", &s_indent[MAX_INDENT-indent], s_objects[nObject].pIndexTable[i].offset, s_objects[nObject].pIndexTable[i].vars);
 #endif
-            BuildTables(&(pObject[s_objects[nObject].pIndexTable[i].offset]), indent + 1, nCompileIndex);
+            bool bSkip = false;
+            for (int j = 0; j < i; j++)
+            {
+                if (s_objects[nObject].pIndexTable[i].offset == s_objects[nObject].pIndexTable[j].offset)
+                {
+                    bSkip = true;
+                }
+            }
+            if (!bSkip)
+            {
+                BuildTables(&(pObject[s_objects[nObject].pIndexTable[i].offset]), indent + 1, nCompileIndex);
+            }
         }
 #ifdef RPE_DEBUG
         else
@@ -592,10 +619,22 @@ int ScanLowerOpcode(unsigned char* pOpcode, MethodUsage* pUsage, ObjectEntry* pO
             {
                 // indexed
             }
+
+            // skip over invalid calls (happens when we scan strings as opcodes, this can go away when we fix scanning strings properly)
+            if (objnum < 0 || objnum > (pObject->nObjectMethodCount + pObject->nObjectSubObjectCount)) 
+            {
+                return nOpSize + 1;
+            }
         }
 
         int pubnum = pOpcode[nOpSize];
         nOpSize++;
+
+        // skip over invalid calls (happens when we scan strings as opcodes, this can go away when we fix scanning strings properly)
+        if (objnum == 0 && (pubnum < 0 || pubnum > pObject->nObjectMethodCount))
+        {
+            return nOpSize;
+        }
 
         // need to update usage here
         if (pUsage->pCalls == 0)
