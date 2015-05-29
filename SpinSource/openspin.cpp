@@ -38,7 +38,7 @@ static bool s_bUnusedMethodElimination = false;
 static void Banner(void)
 {
     fprintf(stdout, "Propeller Spin/PASM Compiler \'OpenSpin\' (c)2012-2015 Parallax Inc. DBA Parallax Semiconductor.\n");
-    fprintf(stdout, "Version 1.00.76 Compiled on %s %s\n",__DATE__, __TIME__);
+    fprintf(stdout, "Version 1.00.77 Compiled on %s %s\n",__DATE__, __TIME__);
 }
 
 /* Usage - display a usage message and exit */
@@ -319,11 +319,6 @@ bool CompileRecursively(char* pFilename, bool bQuiet, bool bFileTreeOutputOnly, 
             if (!CompileRecursively(&filenames[i<<8], bQuiet, bFileTreeOutputOnly, nCompileIndex))
             {
                 return false;
-            }
-            // advance compile index for multiple instances
-            if (s_pCompilerData->obj_instances[i] > 1)
-            {
-                nCompileIndex += s_pCompilerData->obj_instances[i] - 1;
             }
         }
 

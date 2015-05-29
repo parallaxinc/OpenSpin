@@ -336,21 +336,6 @@ void InitUnusedMethodData()
     s_nNumObjectNames = 0;
 }
 
-void AdvanceCompileIndex(unsigned char* pObject, int& nCompileIndex)
-{
-    nCompileIndex++;
-
-    int nNextObjOffset = *((unsigned short *)pObject);
-    ObjectEntry* pObjectEntry = GetObject(pObject);
-    for (int i = 0; i < pObjectEntry->nObjectIndexCount; i++)
-    {
-        if (pObjectEntry->pIndexTable[i].offset >= nNextObjOffset)
-        {
-            AdvanceCompileIndex(&(pObject[pObjectEntry->pIndexTable[i].offset]), nCompileIndex);
-        }
-    }
-}
-
 void BuildTables(unsigned char* pObject, int indent, int& nCompileIndex)
 {
 #ifdef RPE_DEBUG
@@ -363,7 +348,6 @@ void BuildTables(unsigned char* pObject, int indent, int& nCompileIndex)
 #ifdef RPE_DEBUG
         printf("%sObject Already Added\n", &s_indent[MAX_INDENT-indent]);
 #endif
-        AdvanceCompileIndex(pObject, nCompileIndex);
         return;
     }
     nCompileIndex++;
@@ -381,6 +365,8 @@ void BuildTables(unsigned char* pObject, int indent, int& nCompileIndex)
 #ifdef RPE_DEBUG
             printf("%s Object Offset: %04d  Vars Offset: %d\n", &s_indent[MAX_INDENT-indent], s_objects[nObject].pIndexTable[i].offset, s_objects[nObject].pIndexTable[i].vars);
 #endif
+            // this skip logic here is to handle the case where there are multiple instances of the same object source included
+            // either as an array of objects or as separately named objects
             bool bSkip = false;
             for (int j = 0; j < i; j++)
             {
