@@ -336,6 +336,21 @@ void InitUnusedMethodData()
     s_nNumObjectNames = 0;
 }
 
+void AdvanceCompileIndex(unsigned char* pObject, int& nCompileIndex)
+{
+    nCompileIndex++;
+
+    int nNextObjOffset = *((unsigned short *)pObject);
+    ObjectEntry* pObjectEntry = GetObject(pObject);
+    for (int i = 0; i < pObjectEntry->nObjectIndexCount; i++)
+    {
+        if (pObjectEntry->pIndexTable[i].offset >= nNextObjOffset)
+        {
+            AdvanceCompileIndex(&(pObject[pObjectEntry->pIndexTable[i].offset]), nCompileIndex);
+        }
+    }
+}
+
 void BuildTables(unsigned char* pObject, int indent, int& nCompileIndex)
 {
 #ifdef RPE_DEBUG
@@ -348,6 +363,7 @@ void BuildTables(unsigned char* pObject, int indent, int& nCompileIndex)
 #ifdef RPE_DEBUG
         printf("%sObject Already Added\n", &s_indent[MAX_INDENT-indent]);
 #endif
+        AdvanceCompileIndex(pObject, nCompileIndex);
         return;
     }
     nCompileIndex++;
@@ -378,6 +394,10 @@ void BuildTables(unsigned char* pObject, int indent, int& nCompileIndex)
             if (!bSkip)
             {
                 BuildTables(&(pObject[s_objects[nObject].pIndexTable[i].offset]), indent + 1, nCompileIndex);
+            }
+            else
+            {
+                AdvanceCompileIndex(&(pObject[s_objects[nObject].pIndexTable[i].offset]), nCompileIndex);
             }
         }
 #ifdef RPE_DEBUG
