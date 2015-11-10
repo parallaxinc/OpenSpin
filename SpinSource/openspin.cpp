@@ -38,7 +38,7 @@ static bool s_bUnusedMethodElimination = false;
 static void Banner(void)
 {
     fprintf(stdout, "Propeller Spin/PASM Compiler \'OpenSpin\' (c)2012-2015 Parallax Inc. DBA Parallax Semiconductor.\n");
-    fprintf(stdout, "Version 1.00.77 Compiled on %s %s\n",__DATE__, __TIME__);
+    fprintf(stdout, "Version 1.00.78 Compiled on %s %s\n",__DATE__, __TIME__);
 }
 
 /* Usage - display a usage message and exit */
@@ -253,7 +253,7 @@ void PrintError(const char* pFilename, const char* pErrorString)
     printf("Line:\n%s\nOffending Item: %s\n", errorLine, errorItem);
 }
 
-bool CompileRecursively(char* pFilename, bool bQuiet, bool bFileTreeOutputOnly, int& nCompileIndex)
+bool CompileRecursively(char* pFilename, bool bQuiet, bool bFileTreeOutputOnly, int& nCompileIndex, int objCount)
 {
     nCompileIndex++;
     if (s_nObjStackPtr > 0 && (!bQuiet || bFileTreeOutputOnly))
@@ -281,7 +281,15 @@ bool CompileRecursively(char* pFilename, bool bQuiet, bool bFileTreeOutputOnly, 
 
     if (!s_pCompilerData->bFinalCompile  && s_bUnusedMethodElimination)
     {
-        AddObjectName(pFilename, nCompileIndex);
+        // handle arrays of objects (we need them all added instead of just one, so that things sync up in the unused method tracking logic)
+        for (int i = 0; i < objCount; i++)
+        {
+            if (i > 0)
+            {
+                nCompileIndex++;
+            }
+            AddObjectName(pFilename, nCompileIndex);
+        }
     }
 
     strcpy(s_pCompilerData->current_filename, pFilename);
@@ -302,6 +310,7 @@ bool CompileRecursively(char* pFilename, bool bQuiet, bool bFileTreeOutputOnly, 
     if (s_pCompilerData->obj_files > 0)
     {
         char filenames[file_limit*256];
+        int objCounts[file_limit];
 
         int numObjects = s_pCompilerData->obj_files;
         for (int i = 0; i < numObjects; i++)
@@ -312,11 +321,12 @@ bool CompileRecursively(char* pFilename, bool bQuiet, bool bFileTreeOutputOnly, 
             {
                 strcat(&filenames[i<<8], ".spin");
             }
+            objCounts[i] = s_pCompilerData->obj_instances[i];
         }
 
         for (int i = 0; i < numObjects; i++)
         {
-            if (!CompileRecursively(&filenames[i<<8], bQuiet, bFileTreeOutputOnly, nCompileIndex))
+            if (!CompileRecursively(&filenames[i<<8], bQuiet, bFileTreeOutputOnly, nCompileIndex, objCounts[i]))
             {
                 return false;
             }
@@ -855,7 +865,7 @@ restart_compile:
     }
 
     int nCompileIndex = 0;
-    if (!CompileRecursively(infile, bQuiet, bFileTreeOutputOnly, nCompileIndex))
+    if (!CompileRecursively(infile, bQuiet, bFileTreeOutputOnly, nCompileIndex, 1))
     {
         CleanupMemory();
         return 1;
