@@ -3,8 +3,8 @@
 # possible targets are: win32, rpi
 
 ifeq ($(CROSS),win32)
-  CC=i586-mingw32msvc-gcc
-  CXX=i586-mingw32msvc-g++
+  CC=i686-w64-mingw32-gcc
+  CXX=i686-w64-mingw32-g++
   EXT=.exe
   BUILD=./build-win32
 else ifeq ($(CROSS),rpi)
