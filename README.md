@@ -26,8 +26,8 @@ openspin.exe is a command line wrapper for the compiler library. You give it a s
 Binary Downloads
 ----------------
 
-[Windows build downloads are available here.](https://github.com/parallaxinc/OpenSpin/releases)
-[Mac build downloads (provided by Brett Weir) are available here.](https://github.com/bweir/OpenSpin/releases) 
+* [Windows build downloads are available here.](https://github.com/parallaxinc/OpenSpin/releases)
+* [Mac build downloads (provided by Brett Weir) are available here.](https://github.com/bweir/OpenSpin/releases) 
 
 Thanks
 ------
