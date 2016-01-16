@@ -95,6 +95,7 @@ bool Elementizer::GetNext(bool& bEof)
 
     m_currentSymbol[0] = 0;
     int symbolOffset = 0;
+    bool bConstantOverflow = false;
 
     for (;;)
     {
@@ -123,6 +124,7 @@ bool Elementizer::GetNext(bool& bEof)
                     currentChar == 'e' || currentChar == 'E')
                 {
                     // handle float
+                    bConstantOverflow = false;
                     m_sourceOffset = sourceStart;
                     if (GetFloat(pSource, m_sourceOffset, m_value))
                     {
@@ -146,7 +148,15 @@ bool Elementizer::GetNext(bool& bEof)
             else
             {
                 // multiply accumulate the constant
+                unsigned int oldValue = m_value;
                 m_value *= constantBase;
+
+                // check for overflow
+                if (((unsigned int)m_value / constantBase) != oldValue)
+                {
+                    bConstantOverflow = true;
+                }
+
                 m_value += digitValue;
             }
             continue;
@@ -522,6 +532,11 @@ bool Elementizer::GetNext(bool& bEof)
             }
             break;
         }
+    }
+
+    if (bConstantOverflow)
+    {
+        error = error_ce32b;
     }
 
     // update pointers

@@ -37,7 +37,7 @@ static bool s_bUnusedMethodElimination = false;
 
 static void Banner(void)
 {
-    fprintf(stdout, "Propeller Spin/PASM Compiler \'OpenSpin\' (c)2012-2015 Parallax Inc. DBA Parallax Semiconductor.\n");
+    fprintf(stdout, "Propeller Spin/PASM Compiler \'OpenSpin\' (c)2012-2016 Parallax Inc. DBA Parallax Semiconductor.\n");
     fprintf(stdout, "Version 1.00.78 Compiled on %s %s\n",__DATE__, __TIME__);
 }
 
@@ -195,6 +195,7 @@ bool GetPASCIISource(char* pFilename)
     if (pBuffer)
     {
         char* pPASCIIBuffer = new char[nLength+1];
+        memset(pPASCIIBuffer, 0, nLength + 1);
         if (!UnicodeToPASCII(pBuffer, nLength, pPASCIIBuffer, s_bUsePreprocessor))
         {
             printf("Unrecognized text encoding format!\n");
