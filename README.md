@@ -23,11 +23,21 @@ openspin.exe
 
 openspin.exe is a command line wrapper for the compiler library. You give it a spin file and it passes it through the compiler and produces a .binary (or optional .eeprom) file with the same base name as the passed in spin file. There are several [command line options](https://github.com/reltham/OpenSpin/wiki/CommandLine) available. Run openspin.exe with no arguments to get a usage description.
 
-Binary Downloads
-----------------
+Downloads
+---------
 
-* [Windows build downloads are available here.](https://github.com/parallaxinc/OpenSpin/releases)
-* [Mac build downloads (provided by Brett Weir) are available here.](https://github.com/bweir/OpenSpin/releases) 
+### Releases here include a Windows build:
+* [Windows](https://github.com/parallaxinc/OpenSpin/releases)
+
+### Builds provided by David Zemon's TeamCity service:
+ Note: These are updated automatically whenever changes are submitted here, so they include changes between releases.
+* [Linux x86_64](http://david.zemon.name:8111/repository/download/OpenSpin_LinuxX8664/lastSuccessful/openspin.tar.gz?guest=1)
+* [Windows x86](http://david.zemon.name:8111/repository/download/OpenSpin_WindowsX86/lastSuccessful/openspin.zip?guest=1)
+* [Raspberry Pi](http://david.zemon.name:8111/repository/download/OpenSpin_RaspberryPi/lastSuccessful/openspin.tar.gz?guest=1)
+
+### Releases of Brett Weir's fork include Linux & Mac/OSX builds:
+ Note: These contain changes made by Brett, and don't always include the latest changes from here.
+* [Linux & Mac/OSX](https://github.com/bweir/OpenSpin/releases)
 
 Thanks
 ------
