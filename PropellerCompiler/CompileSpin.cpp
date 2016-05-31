@@ -556,7 +556,7 @@ void InitCompiler(CompilerConfig* pCompilerConfig, LoadFileFunc pLoadFileFunc, F
     pp_setcomments(&s_preprocessor, "\'", "{", "}");
 }
 
-void SetDefine(char* pName, char* pValue)
+void SetDefine(const char* pName, const char* pValue)
 {
     pp_define(&s_preprocessor, pName, pValue);
 }

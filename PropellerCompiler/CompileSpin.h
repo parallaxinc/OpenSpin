@@ -48,7 +48,7 @@ struct CompilerConfig
 
 
 void InitCompiler(CompilerConfig* pCompilerConfig, LoadFileFunc pLoadFileFunc, FreeFileBufferFunc pFreeFileBufferFunc);
-void SetDefine(char* pName, char* pValue);
+void SetDefine(const char* pName, const char* pValue);
 unsigned char* CompileSpin(char* pFilename, int* pnResultLength);
 void ShutdownCompiler();
 
