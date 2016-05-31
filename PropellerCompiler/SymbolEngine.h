@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////
 //                                                          //
 // Propeller Spin/PASM Compiler                             //
-// (c)2012 Parallax Inc. DBA Parallax Semiconductor.        //
+// (c)2012-2016 Parallax Inc. DBA Parallax Semiconductor.   //
 // Adapted from Chip Gracey's x86 asm code by Roy Eltham    //
 // See end of file for terms of use.                        //
 //                                                          //
@@ -15,7 +15,7 @@
 
 #include "Utilities.h"
 
-enum symbolType
+enum symbol_Type
 {
     type_undefined = 0,     // (undefined symbol, must be 0)
     type_left,              // (
@@ -104,7 +104,7 @@ enum symbolType
     type_end                // end-of-line c=0, end-of-file c=1
 };
 
-enum blockType
+enum block_Type
 {
     block_con = 0,
     block_var,
@@ -115,7 +115,7 @@ enum blockType
     block_dev,
 };
 
-enum operatorType
+enum operator_Type
 {
     op_ror = 0,     // operator precedences (0=priority)
     op_rol,         //
@@ -151,7 +151,7 @@ enum operatorType
     op_log_not
 };
 
-enum directivesType
+enum directives_Type
 {
     dir_orgx = 0,
     dir_org,
@@ -160,7 +160,7 @@ enum directivesType
     dir_nop
 };
 
-enum ifType
+enum if_Type
 {
     if_never = 0,
     if_nc_and_nz,
@@ -182,7 +182,7 @@ enum ifType
 
 struct SymbolTableEntryDataTable
 {
-    symbolType      type;                   // what type of symbol is it?
+    symbol_Type     type;                   // what type of symbol is it?
     int             value;                  // value is type dependant
     const char*     name;                   // the string of the symbol
     unsigned char   operator_type_or_asm;   // operator type for op symbols, or asm value for dual symbols
@@ -191,7 +191,7 @@ struct SymbolTableEntryDataTable
 
 struct SymbolTableEntryData
 {
-    symbolType      type;                   // what type of symbol is it?
+    symbol_Type     type;                   // what type of symbol is it?
     int             value;                  // value is type dependant
     int             value_2;                // value 2 is type dependant
     char*           name;                   // the string of the symbol
@@ -226,7 +226,7 @@ public:
 
     SymbolTableEntry* FindSymbol(const char* pSymbolName);
 
-    void AddSymbol(const char* pSymbolName, symbolType type, int value, int value_2 = 0, bool bTemp = false);
+    void AddSymbol(const char* pSymbolName, symbol_Type type, int value, int value_2 = 0, bool bTemp = false);
     void Reset(bool bTempsOnly = false);
 };
 

@@ -45,6 +45,12 @@ OBJ=$(BUILD)/BlockNestStackRoutines.o \
 	$(BUILD)/Utilities.o \
 	$(BUILD)/UnusedMethodUtils.o \
 	$(BUILD)/PropellerCompiler.o \
+	$(BUILD)/CompileSpin.o \
+	$(BUILD)/flexbuf.o \
+	$(BUILD)/preprocess.o \
+	$(BUILD)/textconvert.o \
+	$(BUILD)/objectheap.o
+
 
 all: $(BUILD) $(LIBNAME) Makefile
 

@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////
 //                                                           //
 // Propeller Spin/PASM Compiler Command Line Tool 'OpenSpin' //
-// (c)2012-2013 Parallax Inc. DBA Parallax Semiconductor.    //
+// (c)2012-2016 Parallax Inc. DBA Parallax Semiconductor.    //
 // Adapted from Jeff Martin's Delphi code by Roy Eltham      //
 // See end of file for terms of use.                         //
 //                                                           //
@@ -11,7 +11,7 @@
 //
 #include <string.h>
 
-#include "../PropellerCompiler/PropellerCompiler.h"
+#include "PropellerCompiler.h"
 #include "objectheap.h"
 
 // Object heap (compile-time objects)

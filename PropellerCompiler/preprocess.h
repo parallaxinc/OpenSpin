@@ -4,7 +4,8 @@
 #include <string.h>
 #include "flexbuf.h"
 
-struct predef {
+struct predef
+{
     struct predef *next;
     const char *name;
     const char *def;
@@ -17,17 +18,29 @@ struct predef {
 #define MODE_UTF8    1
 #define MODE_UTF16   2
 
-struct filestate {
+typedef char* (*PreprocessLoadFileFunc)(const char* pFilename, int* pnLength);
+typedef void (*PreprocessFreeFileBufferFunc)(char* buffer);
+
+struct memoryfile
+{
+    char* buffer;
+    int length;
+    int readoffset;
+};
+
+struct filestate
+{
     struct filestate *next;
-    FILE *f;
+    memoryfile *f;
     const char *name;
     int lineno;
-    int (*readfunc)(FILE *f, char *buf);
+    int (*readfunc)(memoryfile *f, char *buf);
     int flags;
 };
 #define FILE_FLAGS_CLOSEFILE 0x01
 
-struct ifstate {
+struct ifstate
+{
     struct ifstate *next;
     int skip;      /* if we are currently skipping code */
     const char *name; /* the name of the file it started in */
@@ -36,7 +49,8 @@ struct ifstate {
     int sawelse;  /* if we have already processed a #else */
 };
 
-struct preprocess {
+struct preprocess
+{
     struct filestate *fil;
     struct flexbuf line;
     struct flexbuf whole;
@@ -69,11 +83,13 @@ struct preprocess {
 
 #define pp_active(pp) (!((pp)->ifs && (pp)->ifs->skip))
 
+void pp_setFileFunctions(PreprocessLoadFileFunc pLoadFileFunc, PreprocessFreeFileBufferFunc pFreeFileBufferFunc);
+
 /* initialize for reading */
 void pp_init(struct preprocess *pp, bool alternate);
 
 /* push an opened FILE struct */
-void pp_push_file_struct(struct preprocess *pp, FILE *f, const char *name);
+void pp_push_file_struct(struct preprocess *pp, memoryfile *f, const char *name);
 
 /* push a file by name */
 void pp_push_file(struct preprocess *pp, const char *filename);

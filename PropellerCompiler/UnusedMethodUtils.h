@@ -1,13 +1,16 @@
 ///////////////////////////////////////////////////////////////
 //                                                           //
 // Propeller Spin/PASM Compiler Command Line Tool 'OpenSpin' //
-// (c)2012-2015 Parallax Inc. DBA Parallax Semiconductor.    //
+// (c)2012-2016 Parallax Inc. DBA Parallax Semiconductor.    //
 // See end of file for terms of use.                         //
 //                                                           //
 ///////////////////////////////////////////////////////////////
 //
 // UnusedMethodUtils.h
 //
+
+#ifndef _UNUSEDMETHODUTILS_H_
+#define _UNUSEDMETHODUTILS_H_
 
 struct CompilerData;
 
@@ -23,6 +26,7 @@ bool GetObjectPubConList(char* pFilename, unsigned char** ppPubConList, int* pnP
 
 void AddCogNewOrInit(char* pFilename, int nSubConstant);
 
+#endif // _UNUSEDMETHODUTILS_H_
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 //                           TERMS OF USE: MIT License                                   //

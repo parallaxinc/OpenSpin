@@ -37,24 +37,69 @@
 #include <stdarg.h>
 #include "flexbuf.h"
 #include "preprocess.h"
-#include "pathentry.h"
 
 #ifdef _MSC_VER
 #define strdup _strdup
 #endif
+
+static PreprocessLoadFileFunc s_pLoadFileFunc = 0;
+static PreprocessFreeFileBufferFunc s_pFreeFileBufferFunc = 0;
+
+void pp_setFileFunctions(PreprocessLoadFileFunc pLoadFileFunc, PreprocessFreeFileBufferFunc pFreeFileBufferFunc)
+{
+    s_pLoadFileFunc = pLoadFileFunc;
+    s_pFreeFileBufferFunc = pFreeFileBufferFunc;
+}
+
+memoryfile* mopen(const char* filename)
+{
+    memoryfile* f;
+    f = (struct memoryfile *)calloc(1, sizeof(*f));
+    if (!f)
+    {
+        return 0;
+    }
+    f->readoffset = 0;
+    f->buffer = s_pLoadFileFunc(filename, &f->length);
+
+    return f;
+}
+
+int mgetc(memoryfile* f)
+{
+    if (f->readoffset < f->length)
+    {
+        return (unsigned char)(f->buffer[f->readoffset++]);
+    }
+    return EOF;
+}
+
+int mungetc(int c, memoryfile* f)
+{
+    f->readoffset--;
+    return c;
+}
+
+void mclose(memoryfile* f)
+{
+    s_pFreeFileBufferFunc(f->buffer);
+    free(f);
+}
 
 /*
  * function to read a single LATIN-1 character
  * from a file
  * returns number of bytes placed in buffer, or -1 on EOF
  */
-static int
-read_latin1(FILE *f, char buf[4])
+static int read_latin1(memoryfile *f, char buf[4])
 {
-  int c = fgetc(f);
+  int c = mgetc(f);
   if (c == EOF)
+  {
     return -1;
-  if (c <= 127) {
+  }
+  if (c <= 127)
+  {
     buf[0] = (char)c;
     return 1;
   }
@@ -68,12 +113,13 @@ read_latin1(FILE *f, char buf[4])
  * from a file
  * returns number of bytes placed in buffer, or -1 on EOF
  */
-static int
-read_single(FILE *f, char buf[4])
+static int read_single(memoryfile *f, char buf[4])
 {
-    int c = fgetc(f);
+    int c = mgetc(f);
     if (c == EOF)
+    {
         return -1;
+    }
     buf[0] = (char)c;
     return 1;
 }
@@ -83,36 +129,46 @@ read_single(FILE *f, char buf[4])
  * from a file
  * returns number of bytes placed in buffer, or -1 on EOF
  */
-static int
-read_utf16(FILE *f, char buf[4])
+static int read_utf16(memoryfile *f, char buf[4])
 {
     int c, d;
     int r;
-    c = fgetc(f);
+    c = mgetc(f);
     if (c < 0)
+    {
         return -1;
-    d = fgetc(f);
+    }
+    d = mgetc(f);
     if (d < 0)
+    {
         return -1;
+    }
 
     c = c + (d<<8);
     /* here we need to translate UTF-16 to UTF-8 */
     /* FIXME: this code is not done properly; it does
        not handle surrogate pairs (0xD800 - 0xDFFF)
      */
-    if (c < 128) {
+    if (c < 128)
+    {
         buf[0] = (char)c;
         r = 1;
-    } else if (c < 0x800) {
+    }
+    else if (c < 0x800)
+    {
         buf[0] = 0xC0 + ((c>>6) &  0x1F);
         buf[1] = 0x80 + ( c & 0x3F );
         r = 2;
-    } else if (c < 0x10000) {
+    }
+    else if (c < 0x10000)
+    {
         buf[0] = 0xE0 + ((c>>12) & 0x0F);
         buf[1] = 0x80 + ((c>>6) & 0x3F);
         buf[2] = 0x80 + (c & 0x3F);
         r = 3;
-    } else {
+    }
+    else
+    {
         buf[0] = 0xF0 + ((c>>18) & 0x07);
         buf[1] = 0x80 + ((c>>12) & 0x3F);
         buf[2] = 0x80 + ((c>>6) & 0x3F);
@@ -126,51 +182,64 @@ read_utf16(FILE *f, char buf[4])
  * read a line
  * returns number of bytes read, or 0 on EOF
  */
-int
-pp_nextline(struct preprocess *pp)
+int pp_nextline(struct preprocess *pp)
 {
     int r;
     int count = 0;
-    FILE *f;
+    memoryfile *f;
     char buf[4];
     struct filestate *A;
 
     A = pp->fil;
     if (!A)
+    {
         return 0;
+    }
     f = A->f;
     A->lineno++;
 
     flexbuf_clear(&pp->line);
-    if (A->readfunc == NULL) {
+    if (A->readfunc == NULL)
+    {
         int c0, c1, c2;
-        c0 = fgetc(f);
-        if (c0 < 0) return 0;
-        c1 = fgetc(f);
-        c2 = fgetc(f);
-        if ((c0 == 0xff && c1 == 0xfe) || c1 == 0) {
+        c0 = mgetc(f);
+        if (c0 < 0)
+        {
+            return 0;
+        }
+        c1 = mgetc(f);
+        c2 = mgetc(f);
+        if ((c0 == 0xff && c1 == 0xfe) || c1 == 0)
+        {
             A->readfunc = read_utf16;
-            ungetc(c2, f);
-        } else if (c0 == 239 && c1 == 187 && c2 == 191) {
+            mungetc(c2, f);
+        }
+        else if (c0 == 239 && c1 == 187 && c2 == 191)
+        {
             A->readfunc = read_single;
-        } else {
+        }
+        else
+        {
             A->readfunc = read_latin1;
-            ungetc(c2, f);
-            ungetc(c1, f);
+            mungetc(c2, f);
+            mungetc(c1, f);
         }
         /* add UTF-8 encoded BOM */
         flexbuf_addchar(&pp->line, 239);
         flexbuf_addchar(&pp->line, 187);
         flexbuf_addchar(&pp->line, 191);
-        if (A->readfunc == read_latin1) {
+        if (A->readfunc == read_latin1)
+        {
             flexbuf_addchar(&pp->line, c0);
         }
-        if (c0 == '\n') {
+        if (c0 == '\n')
+        {
             flexbuf_addchar(&pp->line, 0);
             return 1;
         }
     }
-    for(;;) {
+    for(;;)
+    {
         r = (*A->readfunc)(f, buf);
         if (r <= 0) break;
         count += r;
@@ -193,8 +262,7 @@ static void default_errfunc(void *dummy, const char *filename, int line, const c
     fprintf(stderr, "\n");
 }
 
-static void
-doerror(struct preprocess *pp, const char *msg, ...)
+static void doerror(struct preprocess *pp, const char *msg, ...)
 {
     va_list args;
     char tmpmsg[BUFSIZ];
@@ -206,15 +274,17 @@ doerror(struct preprocess *pp, const char *msg, ...)
 
     pp->numerrors++;
     fil = pp->fil;
-    if (fil) {
+    if (fil)
+    {
         (*pp->errfunc)(pp->errarg, pp->fil->name, pp->fil->lineno, tmpmsg);
-    } else {
+    }
+    else
+    {
         (*pp->errfunc)(pp->errarg, "", 0, tmpmsg);
     }
 }
 
-static void
-dowarning(struct preprocess *pp, const char *msg, ...)
+static void dowarning(struct preprocess *pp, const char *msg, ...)
 {
     va_list args;
     char tmpmsg[BUFSIZ];
@@ -226,9 +296,12 @@ dowarning(struct preprocess *pp, const char *msg, ...)
     va_end(args);
 
     fil = pp->fil;
-    if (fil) {
+    if (fil)
+    {
         (*pp->warnfunc)(pp->warnarg, pp->fil->name, pp->fil->lineno, tmpmsg);
-    } else {
+    }
+    else
+    {
         (*pp->warnfunc)(pp->warnarg, "", 0, tmpmsg);
     }
 }
@@ -236,8 +309,7 @@ dowarning(struct preprocess *pp, const char *msg, ...)
 /*
  * initialize preprocessor
  */
-void
-pp_init(struct preprocess *pp, bool alternate)
+void pp_init(struct preprocess *pp, bool alternate)
 {
     memset(pp, 0, sizeof(*pp));
     flexbuf_init(&pp->line, 128);
@@ -257,13 +329,13 @@ pp_init(struct preprocess *pp, bool alternate)
  * "current" one; this makes #include implementation
  * easier
  */
-void
-pp_push_file_struct(struct preprocess *pp, FILE *f, const char *filename)
+void pp_push_file_struct(struct preprocess *pp, memoryfile *f, const char *filename)
 {
     struct filestate *A;
 
     A = (struct filestate *)calloc(1, sizeof(*A));
-    if (!A) {
+    if (!A)
+    {
         doerror(pp, "Out of memory!\n");
         return;
     }
@@ -274,34 +346,13 @@ pp_push_file_struct(struct preprocess *pp, FILE *f, const char *filename)
     pp->fil = A;
 }
 
-void
-pp_push_file(struct preprocess *pp, const char *name)
+void pp_push_file(struct preprocess *pp, const char *name)
 {
-    FILE *f;
+    memoryfile *f;
 
-    f = fopen(name, "rb");
+    f = mopen(name);
     if (!f)
     {
-       // try opening file using path
-        PathEntry* entry = NULL;
-        while(!f)
-        {
-            const char* pTryPath = MakeNextPath(&entry, name);
-            if (pTryPath)
-            {
-                f = fopen(pTryPath, "rb");
-                if (f != NULL)
-                {
-                    break;
-                }
-            }
-            else
-            {
-                break;
-            }
-        }
-    }
-    if (!f) {
         doerror(pp, "Unable to open file %s", name);
         return;
     }
@@ -320,30 +371,38 @@ void pp_pop_file(struct preprocess *pp)
 
     PI = NULL;
     I = pp->ifs;
-    while (I) {
-        if (strcmp(pp->fil->name, I->name) == 0) {
+    while (I)
+    {
+        if (strcmp(pp->fil->name, I->name) == 0)
+        {
            doerror(pp, "Unterminated #if starting at line %d", I->linenum);
-           if (PI == NULL) {
+           if (PI == NULL)
+           {
               pp->ifs = I->next;
               free(I);
               I = pp->ifs;
            }
-           else {
+           else
+           {
               PI->next = I->next;
               free(I);
               I = PI->next;
            }
         }
-        else {
+        else
+        {
            PI = I;
            I = I->next;
         }
     }
     A = pp->fil;
-    if (A) {
+    if (A)
+    {
         pp->fil = A->next;
         if (A->flags & FILE_FLAGS_CLOSEFILE)
-            fclose(A->f);
+        {
+            mclose(A->f);
+        }
         free(A);
     }
 }
@@ -353,8 +412,7 @@ void pp_pop_file(struct preprocess *pp)
  * "flags" indicates things like whether we must free the memory
  * associated with name and def
  */
-static void
-pp_define_internal(struct preprocess *pp, const char *name, const char *def, int flags)
+static void pp_define_internal(struct preprocess *pp, const char *name, const char *def, int flags)
 {
     struct predef *the;
 
@@ -370,8 +428,7 @@ pp_define_internal(struct preprocess *pp, const char *name, const char *def, int
  * the user visible "pp_define"; used mainly for constant strings and
  * such, so we do not free those
  */
-void
-pp_define(struct preprocess *pp, const char *name, const char *str)
+void pp_define(struct preprocess *pp, const char *name, const char *str)
 {
     pp_define_internal(pp, name, str, 0);
 }
@@ -381,14 +438,15 @@ pp_define(struct preprocess *pp, const char *name, const char *str)
  * returns NULL if no definition exists (or if there was an
  * explicit #undef)
  */
-const char *
-pp_getdef(struct preprocess *pp, const char *name)
+const char* pp_getdef(struct preprocess *pp, const char *name)
 {
     struct predef *X;
     const char *def = NULL;
     X = pp->defs;
-    while (X) {
-        if (!strcmp(X->name, name)) {
+    while (X)
+    {
+        if (!strcmp(X->name, name))
+        {
             def = X->def;
             break;
         }
@@ -398,7 +456,8 @@ pp_getdef(struct preprocess *pp, const char *name)
 }
 
 /* structure describing current parse state of a string */
-typedef struct parse_state {
+typedef struct parse_state
+{
     char *str;  /* pointer to start of string */
     char *save; /* pointer to where last parse ended */
     int   c;    /* saved character */
@@ -419,9 +478,13 @@ static int
 classify_char(int c)
 {
     if (isspace(c))
+    {
         return PARSE_ISSPACE;
+    }
     if (isalnum(c) || (c == '_'))
+    {
         return PARSE_IDCHAR;
+    }
     return PARSE_OTHER;
 }
 
@@ -435,20 +498,26 @@ static char *parse_getword(ParseState *P)
     char *word, *ptr;
     int state;
 
-    if (P->save) {
+    if (P->save)
+    {
         *P->save = (char)(P->c);
         ptr = P->save;
-    } else {
+    }
+    else
+    {
         ptr = P->str;
     }
     word = ptr;
     if (!*ptr) return ptr;
-    if (*ptr == '\"') {
+    if (*ptr == '\"')
+    {
        ptr++;
-       while (*ptr && (*ptr != '\"')) {
+       while (*ptr && (*ptr != '\"'))
+       {
           ptr++;
        }
-       if (*ptr == '\"') {
+       if (*ptr == '\"')
+       {
           ptr++;
        }
        P->save = ptr;
@@ -458,9 +527,12 @@ static char *parse_getword(ParseState *P)
     }
     state = classify_char((unsigned char)*ptr);
     ptr++;
-    if (state != PARSE_OTHER) {
+    if (state != PARSE_OTHER)
+    {
        while (*ptr && classify_char((unsigned char)*ptr) == state)
+       {
            ptr++;
+       }
     }
 
     P->save = ptr;
@@ -474,38 +546,50 @@ static char *parse_restofline(ParseState *P)
     char *ptr;
     char *ret;
 
-    if (P->save) {
+    if (P->save)
+    {
         *P->save = (char)(P->c);
         ptr = P->save;
-    } else {
+    }
+    else
+    {
         ptr = P->str;
     }
     ret = ptr;
     while (*ptr && *ptr != '\n')
+    {
         ptr++;
-    if (*ptr) {
+    }
+    if (*ptr)
+    {
         P->c = *ptr;
         *ptr = 0;
         P->save = ptr;
-    } else {
+    }
+    else
+    {
         P->save = NULL;
     }
     P->str = ret;
     return P->str;
 }
 
-static void
-parse_skipspaces(ParseState *P)
+static void parse_skipspaces(ParseState *P)
 {
     char *ptr;
-    if (P->save) {
+    if (P->save)
+    {
         *P->save = (char)(P->c);
         ptr = P->save;
-    } else {
+    }
+    else
+    {
         ptr = P->str;
     }
     while (*ptr && isspace(*ptr))
+    {
         ptr++;
+    }
     P->str = ptr;
     P->save = NULL;
 }
@@ -522,14 +606,19 @@ static char *parse_getquotedstring(ParseState *P)
     parse_skipspaces(P);
     ptr = P->str;
     if (*ptr != '\"')
+    {
         return NULL;
+    }
     ptr++;
     start = ptr;
-    while (*ptr && *ptr != '\"') {
+    while (*ptr && *ptr != '\"')
+    {
         ptr++;
     }
     if (!*ptr)
+    {
         return NULL;
+    }
     P->save = ptr;
     P->c = *ptr;
     *ptr = 0;
@@ -542,8 +631,7 @@ static char *parse_getquotedstring(ParseState *P)
  * "src" is the source data
  * "dst" is a destination flexbuf
  */
-static int
-expand_macros(struct preprocess *pp, struct flexbuf *dst, char *src)
+static int expand_macros(struct preprocess *pp, struct flexbuf *dst, char *src)
 {
     ParseState P;
     char *word;
@@ -551,32 +639,49 @@ expand_macros(struct preprocess *pp, struct flexbuf *dst, char *src)
     int len;
 
     if (!pp_active(pp))
+    {
         return 0;
+    }
 
     parse_init(&P, src);
-    for(;;) {
+    for(;;)
+    {
         word = parse_getword(&P);
         if (!*word)
+        {
             break;
-        if (pp->incomment) {
-            if (strstr(word, pp->endcomment)) {
+        }
+        if (pp->incomment)
+        {
+            if (strstr(word, pp->endcomment))
+            {
                 --pp->incomment;
-            } else {
-                if (strstr(word, pp->startcomment)) {
+            }
+            else
+            {
+                if (strstr(word, pp->startcomment))
+                {
                     pp->incomment++;
                 }
             }
             def = word;
-        } else if (isalpha((unsigned char)*word)) {
+        }
+        else if (isalpha((unsigned char)*word))
+        {
             def = pp_getdef(pp, word);
-            if (!def) {
+            if (!def)
+            {
                 def = word;
             }
-            else if (pp->alternate && (strlen(def) == 0)) {
+            else if (pp->alternate && (strlen(def) == 0))
+            {
                 def = word;
             }
-        } else {
-            if (pp->startcomment && strstr(word, pp->startcomment)) {
+        }
+        else
+        {
+            if (pp->startcomment && strstr(word, pp->startcomment))
+            {
                 pp->incomment++;
             }
             def = word;
@@ -588,31 +693,34 @@ expand_macros(struct preprocess *pp, struct flexbuf *dst, char *src)
     return len;
 }
 
-static void
-handle_ifdef(struct preprocess *pp, ParseState *P, int invert)
+static void handle_ifdef(struct preprocess *pp, ParseState *P, int invert)
 {
     char *word;
     const char *def;
     struct ifstate *I;
 
     I = (struct ifstate *)calloc(1, sizeof(*I));
-    if (!I) {
+    if (!I)
+    {
         doerror(pp, "Out of memory\n");
         return;
     }
     I->next = pp->ifs;
-    if (pp->fil) {
+    if (pp->fil)
+    {
         I->name = strdup(pp->fil->name);
         I->linenum = pp->fil->lineno;
     }
 
-    if (!pp_active(pp)) {
+    if (!pp_active(pp))
+    {
         I->skip = 1;
         I->skiprest = 1;  /* skip all branches, even else */
         pp->ifs = I;
         return;
     }
-    else {
+    else
+    {
         I->skip = 0;
         I->skiprest = 0;
         pp->ifs = I;
@@ -620,16 +728,18 @@ handle_ifdef(struct preprocess *pp, ParseState *P, int invert)
     
     word = parse_getwordafterspaces(P);
     def = pp_getdef(pp, word);
-    if (invert ^ (def != NULL)) {
+    if (invert ^ (def != NULL))
+    {
         I->skip = 0;
         I->skiprest = 1;
-    } else {
+    }
+    else
+    {
         I->skip = 1;
     }
 }
 
-static void
-handle_else(struct preprocess *pp, ParseState *P)
+static void handle_else(struct preprocess *pp, ParseState *P)
 {
 #ifdef _MSC_VER
     (P); // stop warning
@@ -637,52 +747,60 @@ handle_else(struct preprocess *pp, ParseState *P)
 
     struct ifstate *I = pp->ifs;
 
-    if (!I) {
+    if (!I)
+    {
         doerror(pp, "#else without matching #if");
         return;
     }
-    if (I->sawelse) {
+    if (I->sawelse)
+    {
         doerror(pp, "multiple #else statements in #if");
         return;
     }
     I->sawelse = 1;
-    if (I->skiprest) {
+    if (I->skiprest)
+    {
         /* some branch was already handled */
         I->skip = 1;
-    } else {
+    }
+    else
+    {
         I->skip = 0;
     }
 }
 
-static void
-handle_elseifdef(struct preprocess *pp, ParseState *P, int invert)
+static void handle_elseifdef(struct preprocess *pp, ParseState *P, int invert)
 {
     struct ifstate *I = pp->ifs;
     char *word;
     const char *def;
 
-    if (!I) {
+    if (!I)
+    {
         doerror(pp, "#else without matching #if");
         return;
     }
 
-    if (I->skiprest) {
+    if (I->skiprest)
+    {
         /* some branch was already handled */
         I->skip = 1;
         return;
     }
     word = parse_getwordafterspaces(P);
     def = pp_getdef(pp, word);
-    if (invert ^ (def != NULL)) {
+    if (invert ^ (def != NULL))
+    {
         I->skip = 0;
         I->skiprest = 1;
-    } else {
+    }
+    else
+    {
         I->skip = 1;
     }
 }
 
-static void
-handle_endif(struct preprocess *pp, ParseState *P)
+static void handle_endif(struct preprocess *pp, ParseState *P)
 {
 #ifdef _MSC_VER
     (P); // stop warning
@@ -690,7 +808,8 @@ handle_endif(struct preprocess *pp, ParseState *P)
 
     struct ifstate *I = pp->ifs;
 
-    if (!I) {
+    if (!I)
+    {
         doerror(pp, "#endif without matching #if");
         return;
     }
@@ -698,74 +817,81 @@ handle_endif(struct preprocess *pp, ParseState *P)
     free(I);
 }
 
-static void
-handle_error(struct preprocess *pp, ParseState *P)
+static void handle_error(struct preprocess *pp, ParseState *P)
 {
     char *msg;
-    if (!pp_active(pp)) {
+    if (!pp_active(pp))
+    {
         return;
     }
     msg = parse_restofline(P);
     doerror(pp, "#error: %s", msg);
-    if (pp->alternate) {
+    if (pp->alternate)
+    {
        exit(1);
     }
 }
 
-static void
-handle_warn(struct preprocess *pp, ParseState *P)
+static void handle_warn(struct preprocess *pp, ParseState *P)
 {
     char *msg;
-    if (!pp_active(pp)) {
+    if (!pp_active(pp))
+    {
         return;
     }
     msg = parse_restofline(P);
     dowarning(pp, "#warn: %s", msg);
 }
 
-static void
-handle_define(struct preprocess *pp, ParseState *P, int isDef)
+static void handle_define(struct preprocess *pp, ParseState *P, int isDef)
 {
     char *def;
     char *name;
     const char *oldvalue;
     struct flexbuf newdef;
 
-    if (!pp_active(pp)) {
+    if (!pp_active(pp))
+    {
         return;
     }
     name = parse_getwordafterspaces(P);
-    if (classify_char(name[0]) != PARSE_IDCHAR) {
+    if (classify_char(name[0]) != PARSE_IDCHAR)
+    {
         doerror(pp, "%s is not a valid identifier for define", name);
         return;
     }
     oldvalue = pp_getdef(pp, name);
-    if (oldvalue && isDef) {
+    if (oldvalue && isDef)
+    {
         dowarning(pp, "redefining `%s'", name);
     }
     name = strdup(name);
 
-    if (isDef) {
+    if (isDef)
+    {
         parse_skipspaces(P);
         def = parse_restofline(P);
         flexbuf_init(&newdef, 80);
         expand_macros(pp, &newdef, def);
         def = flexbuf_get(&newdef);
-    } else {
+    }
+    else
+    {
         def = NULL;
     }
     pp_define_internal(pp, name, def, PREDEF_FLAG_FREEDEFS);
 }
 
-static void
-handle_include(struct preprocess *pp, ParseState *P)
+static void handle_include(struct preprocess *pp, ParseState *P)
 {
     char *name;
-    if (!pp_active(pp)) {
+    if (!pp_active(pp))
+    {
         return;
     }
     name = parse_getquotedstring(P);
-    if (!name) {
+    if (!name)
+    {
         doerror(pp, "no string found for include");
         return;
     }
@@ -775,8 +901,7 @@ handle_include(struct preprocess *pp, ParseState *P)
 /*
  * expand a line and process any directives
  */
-static int
-do_line(struct preprocess *pp)
+static int do_line(struct preprocess *pp)
 {
     char *data = flexbuf_get(&pp->line);
     char *func;
@@ -789,37 +914,63 @@ do_line(struct preprocess *pp)
         dataOffset = 3;
     }
 
-    if (data[dataOffset] != '#' || pp->incomment) {
+    if (data[dataOffset] != '#' || pp->incomment)
+    {
         r = expand_macros(pp, &pp->line, data);
-    } else {
+    }
+    else
+    {
         ParseState P;
         parse_init(&P, data+1+dataOffset);
         parse_skipspaces(&P);
         func = parse_getword(&P);
         r = 0;
-        if (!strcmp(func, "ifdef")) {
+        if (!strcmp(func, "ifdef"))
+        {
             handle_ifdef(pp, &P, 0);
-        } else if (!strcmp(func, "ifndef")) {
+        }
+        else if (!strcmp(func, "ifndef"))
+        {
             handle_ifdef(pp, &P, 1);
-        } else if (!strcmp(func, "else")) {
+        }
+        else if (!strcmp(func, "else"))
+        {
             handle_else(pp, &P);
-        } else if (!strcmp(func, "elseifdef")) {
+        }
+        else if (!strcmp(func, "elseifdef"))
+        {
             handle_elseifdef(pp, &P, 0);
-        } else if (!strcmp(func, "elseifndef")) {
+        }
+        else if (!strcmp(func, "elseifndef"))
+        {
             handle_elseifdef(pp, &P, 1);
-        } else if (!strcmp(func, "endif")) {
+        }
+        else if (!strcmp(func, "endif"))
+        {
             handle_endif(pp, &P);
-        } else if (!strcmp(func, "error")) {
+        }
+        else if (!strcmp(func, "error"))
+        {
             handle_error(pp, &P);
-        } else if (!strcmp(func, "warning")) {
+        }
+        else if (!strcmp(func, "warning"))
+        {
             handle_warn(pp, &P);
-        } else if (!strcmp(func, "define")) {
+        }
+        else if (!strcmp(func, "define"))
+        {
             handle_define(pp, &P, 1);
-        } else if (!strcmp(func, "undef")) {
+        }
+        else if (!strcmp(func, "undef"))
+        {
             handle_define(pp, &P, 0);
-        } else if (!strcmp(func, "include")) {
+        }
+        else if (!strcmp(func, "include"))
+        {
             handle_include(pp, &P);
-        } else {
+        }
+        else
+        {
             //doerror(pp, "Unknown preprocessor directive `%s'", func);
             // because spin has the # as a valid part of it's syntax and that can be at the start of a line,
             // this isn't an error, but instead needs to be parsed like a normal line
@@ -838,22 +989,26 @@ do_line(struct preprocess *pp)
 /*
  * main function
  */
-void
-pp_run(struct preprocess *pp)
+void pp_run(struct preprocess *pp)
 {
     int linelen;
 
-    while (pp->fil) {
-        for(;;) {
+    while (pp->fil)
+    {
+        for(;;)
+        {
             linelen = pp_nextline(pp);
             if (linelen <= 0) break;  /* end of file */
             /* now expand directives and/or macros */
             linelen = do_line(pp);
             /* if the whole line should be skipped check_directives will return 0 */
-            if (linelen == 0) {
+            if (linelen == 0)
+            {
                 /* add a newline so line number errors will be correct */
                 flexbuf_addchar(&pp->whole, '\n');
-            } else {
+            }
+            else
+            {
                 char *line = flexbuf_get(&pp->line);
                 flexbuf_addstr(&pp->whole, line);
                 free(line);
@@ -863,8 +1018,7 @@ pp_run(struct preprocess *pp)
     }
 }
 
-char *
-pp_finish(struct preprocess *pp)
+char* pp_finish(struct preprocess *pp)
 {
     flexbuf_addchar(&pp->whole, 0);
     pp_clear_define_state(pp);
@@ -875,8 +1029,7 @@ pp_finish(struct preprocess *pp)
 /*
  * set comment characters
  */
-void
-pp_setcomments(struct preprocess *pp, const char *line, const char *start, const char *end)
+void pp_setcomments(struct preprocess *pp, const char *line, const char *start, const char *end)
 {
     pp->linecomment = line;
     pp->startcomment = start;
@@ -888,148 +1041,55 @@ pp_setcomments(struct preprocess *pp, const char *line, const char *start, const
  * this may be used to ensure that #defines in sub files are not
  * seen in the main file
  */
-void *
-pp_get_define_state(struct preprocess *pp)
+void* pp_get_define_state(struct preprocess *pp)
 {
     return (void *)pp->defs;
 }
 
-void
-pp_restore_define_state(struct preprocess *pp, void *vp)
+void pp_restore_define_state(struct preprocess *pp, void *vp)
 {
     struct predef *where = (struct predef *)vp;
     struct predef *x, *old;
 
     x = pp->defs;
-    while (x && x != where) {
+    while (x && x != where)
+    {
         old = x;
         x = old->next;
         if (old->flags & PREDEF_FLAG_FREEDEFS)
         {
             free((void *)old->name);
-            if (old->def) free((void *)old->def);
+            if (old->def)
+            {
+                free((void *)old->def);
+            }
         }
         free(old);
     }
     pp->defs = x;
 }
 
-void
-pp_clear_define_state(struct preprocess *pp)
+void pp_clear_define_state(struct preprocess *pp)
 {
     struct predef *x, *old;
 
     x = pp->defs;
-    while (x) {
+    while (x)
+    {
         old = x;
         x = old->next;
         if (old->flags & PREDEF_FLAG_FREEDEFS)
         {
             free((void *)old->name);
-            if (old->def) free((void *)old->def);
+            if (old->def)
+            {
+                free((void *)old->def);
+            }
         }
         free(old);
     }
     pp->defs = 0;
 }
-
-#ifdef TEST
-char *
-preprocess(const char *filename, bool alternate)
-{
-    struct preprocess pp;
-    FILE *f;
-    char *result;
-
-    f = fopen(filename, "rb");
-    if (!f) {
-        perror(filename);
-        return NULL;
-    }
-    pp_init(&pp, alternate);
-    pp_push_file_struct(&pp, f, filename);
-    pp_run(&pp);
-    result = pp_finish(&pp);
-    fclose(f);
-    return result;
-}
-
-/* Usage - display a usage message and exit */
-static void Usage(void)
-{
-    fprintf(stderr, "Propeller Preprocessor (c)2012 Parallax Inc. DBA Parallax Semiconductor.\n");
-    fprintf(stderr, "\
-usage: spin\n\
-         [ -I <path> ]     add a directory to the include path\n\
-         [ -a ]            use alternate preprocessing rules\n\
-         <name.spin>       spin file to preprocess\n\
-\n");
-}
-
-int
-main(int argc, char **argv)
-{
-    char *str;
-    char* p = NULL;
-    char* infile = NULL;
-    bool  alternate;
-
-    // get the arguments
-    for(int i = 1; i < argc; i++)
-    {
-        // handle switches
-        if(argv[i][0] == '-')
-        {
-            switch(argv[i][1])
-            {
-            case 'I':
-                if(argv[i][2])
-                {
-                    p = &argv[i][2];
-                }
-                else if(++i < argc)
-                {
-                    p = argv[i];
-                }
-                else
-                {
-                    Usage();
-                    return 1;
-                }
-                AddPath(p);
-                break;
-
-            case 'a':
-                alternate = 1;
-                break;
-
-            default:
-                Usage();
-                return 1;
-                break;
-            }
-        }
-        else // handle the input filename
-        {
-            if (infile)
-            {
-                Usage();
-                return 1;
-            }
-            infile = argv[i];
-        }
-    }
-    str = preprocess(infile, alternate);
-    if (!str) {
-        fprintf(stderr, "error reading file %s\n", infile);
-        return 1;
-    } else {
-        printf("%s", str);
-        fflush(stdout);
-    }
-    return 0;
-}
-#endif
 
 /*
  * +--------------------------------------------------------------------

@@ -2,39 +2,25 @@
 //                                                           //
 // Propeller Spin/PASM Compiler Command Line Tool 'OpenSpin' //
 // (c)2012-2016 Parallax Inc. DBA Parallax Semiconductor.    //
+// Adapted from Jeff Martin's Delphi code by Roy Eltham      //
 // See end of file for terms of use.                         //
 //                                                           //
 ///////////////////////////////////////////////////////////////
 //
-// pathentry.h
+// objectheap.h
 //
 
-//
-// code for handling directory paths (used with -I option)
-//
+#ifndef _OBJECTHEAP_H_
+#define _OBJECTHEAP_H_
 
-#ifndef PATH_MAX
-#define PATH_MAX 1024
-#endif
+#define MaxObjInHeap        256
 
-#if defined(WIN32)
-#define DIR_SEP     '\\'
-#define DIR_SEP_STR "\\"
-#else
-#define DIR_SEP     '/'
-#define DIR_SEP_STR "/"
-#endif
+bool AddObjectToHeap(char* name, CompilerData* pCompilerData);
+int IndexOfObjectInHeap(char* name);
+void CleanObjectHeap();
+bool CopyObjectsFromHeap(CompilerData* pCompilerData, char* filenames);
 
-struct PathEntry
-{
-    PathEntry *next;
-    char path[1];
-};
-
-const char *MakeNextPath(PathEntry **entry, const char *name); // pass the address of an entry that is NULL to get first path, keep calling with same entry to walk list
-bool AddPath(const char *path);
-bool AddFilePath(const char *name);
-void CleanupPathEntries();
+#endif // _OBJECTHEAP_H_
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 //                           TERMS OF USE: MIT License                                   //

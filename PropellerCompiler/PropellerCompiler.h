@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////
 //                                                          //
 // Propeller Spin/PASM Compiler                             //
-// (c)2012 Parallax Inc. DBA Parallax Semiconductor.        //
+// (c)2012-2016 Parallax Inc. DBA Parallax Semiconductor.   //
 // Adapted from Chip Gracey's x86 asm code by Roy Eltham    //
 // See end of file for terms of use.                        //
 //                                                          //
@@ -155,6 +155,9 @@ struct CompilerData
 
     int             unused_obj_files;               // number of unused object files
     char            obj_unused[file_limit*256];     // hold filenames of unused objects
+
+    int             unused_methods;                 // number of unused methods
+    char            method_unused[32*file_limit*symbol_limit]; // hold names of unused methods
 };
 
 // public functions

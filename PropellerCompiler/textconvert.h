@@ -1,22 +1,22 @@
 ///////////////////////////////////////////////////////////////
 //                                                           //
 // Propeller Spin/PASM Compiler Command Line Tool 'OpenSpin' //
-// (c)2012-2013 Parallax Inc. DBA Parallax Semiconductor.    //
-// Adapted from Jeff Martin's Delphi code by Roy Eltham      //
+// (c)2012-2016 Parallax Inc. DBA Parallax Semiconductor.    //
 // See end of file for terms of use.                         //
 //                                                           //
 ///////////////////////////////////////////////////////////////
 //
-// objectheap.h
+// textconvert.h
 //
 
-#define MaxObjInHeap        256
+#ifndef _TEXTCONVERT_H_
+#define _TEXTCONVERT_H_
 
-bool AddObjectToHeap(char* name, CompilerData* pCompilerData);
-int IndexOfObjectInHeap(char* name);
-void CleanObjectHeap();
-bool CopyObjectsFromHeap(CompilerData* pCompilerData, char* filenames);
+unsigned int DecodeUtf8(const char* pBuffer, int& nCharSize);
+void PASCIIToUnicode16(char* pPASCIIBuffer, int nPASCIIBufferLength, unsigned short* pUnicode16Buffer);
+bool UnicodeToPASCII(char* pBuffer, int nBufferLength, char* pPASCIIBuffer, bool bForceUTF8);
 
+#endif // _TEXTCONVERT_H_
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 //                           TERMS OF USE: MIT License                                   //

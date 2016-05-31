@@ -32,11 +32,7 @@ CXXFLAGS += $(CFLAGS)
 TARGET=$(BUILD)/openspin$(EXT)
 SRCDIR=SpinSource
 OBJ=$(BUILD)/openspin.o \
-	$(BUILD)/flexbuf.o \
-	$(BUILD)/preprocess.o \
-	$(BUILD)/textconvert.o \
-	$(BUILD)/pathentry.o \
-	$(BUILD)/objectheap.o
+	$(BUILD)/pathentry.o
 
 LIBNAME=$(BUILD)/PropellerCompiler/libopenspin.a
 

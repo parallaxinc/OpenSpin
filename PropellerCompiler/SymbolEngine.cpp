@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////
 //                                                          //
 // Propeller Spin/PASM Compiler                             //
-// (c)2012 Parallax Inc. DBA Parallax Semiconductor.        //
+// (c)2012-2016 Parallax Inc. DBA Parallax Semiconductor.   //
 // Adapted from Chip Gracey's x86 asm code by Roy Eltham    //
 // See end of file for terms of use.                        //
 //                                                          //
@@ -385,7 +385,7 @@ SymbolTableEntry* SymbolEngine::FindSymbol(const char* pSymbolName)
     return 0;
 }
 
-void SymbolEngine::AddSymbol(const char* pSymbolName, symbolType type, int value, int value_2, bool bTemp)
+void SymbolEngine::AddSymbol(const char* pSymbolName, symbol_Type type, int value, int value_2, bool bTemp)
 {
     PrintSymbol(pSymbolName, (unsigned char)type, value, value_2);
 

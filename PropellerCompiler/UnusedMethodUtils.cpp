@@ -2,19 +2,19 @@
 ///////////////////////////////////////////////////////////////
 //                                                           //
 // Propeller Spin/PASM Compiler Command Line Tool 'OpenSpin' //
-// (c)2012-2015 Parallax Inc. DBA Parallax Semiconductor.    //
+// (c)2012-2016 Parallax Inc. DBA Parallax Semiconductor.    //
 // See end of file for terms of use.                         //
 //                                                           //
 ///////////////////////////////////////////////////////////////
 //
-// UnusedMethodElimination.cpp
+// UnusedMethodUtils.cpp
 //
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "../PropellerCompiler/PropellerCompiler.h"
+#include "PropellerCompiler.h"
 
 //
 // track object names based on "indent" or which child/parent level
@@ -394,10 +394,6 @@ void BuildTables(unsigned char* pObject, int indent, int& nCompileIndex)
             if (!bSkip)
             {
                 BuildTables(&(pObject[s_objects[nObject].pIndexTable[i].offset]), indent + 1, nCompileIndex);
-            }
-            else
-            {
-                AdvanceCompileIndex(&(pObject[s_objects[nObject].pIndexTable[i].offset]), nCompileIndex);
             }
         }
 #ifdef RPE_DEBUG

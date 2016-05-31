@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////
 //                                                          //
 // Propeller Spin/PASM Compiler                             //
-// (c)2012-2015 Parallax Inc. DBA Parallax Semiconductor.   //
+// (c)2012-2016 Parallax Inc. DBA Parallax Semiconductor.   //
 // Adapted from Chip Gracey's x86 asm code by Roy Eltham    //
 // See end of file for terms of use.                        //
 //                                                          //
@@ -665,6 +665,15 @@ bool CompileSubBlocksId_Compile(int blockType, bool &bFirst, int &nMethodIndex)
                             bFirst = true;
                         }
                     }
+                    else
+                    {
+                        // just simple tracking of unused methods, maximum tracked amount works out to 1024 entries
+                        if (g_pCompilerData->unused_methods < (32 * file_limit * symbol_limit))
+                        {
+                            strcpy(&(g_pCompilerData->method_unused[symbol_limit * g_pCompilerData->unused_methods]), &(g_pCompilerData->symbolBackup[0]));
+                            g_pCompilerData->unused_methods++;
+                        }
+                    }
                     nMethodIndex++;
                 }
                 else
@@ -780,7 +789,7 @@ bool CompileObjBlocksId()
                     if (!g_pCompilerData->bFinalCompile || IsObjectUsed(&g_pCompilerData->obj_filenames[objFileIndex<<8]))
                     {
                         // is it a new obj?
-                        if (objFileIndex == (g_pCompilerData->obj_files - 1))
+                        if (objFileIndex <= (g_pCompilerData->obj_files - 1))
                         {
                             // reset instances
                             g_pCompilerData->obj_instances[objFileIndex] = 0;

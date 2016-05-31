@@ -89,23 +89,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="flexbuf.cpp">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
-    </ClCompile>
-    <ClCompile Include="objectheap.cpp" />
     <ClCompile Include="openspin.cpp" />
     <ClCompile Include="pathentry.cpp" />
-    <ClCompile Include="preprocess.cpp">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
-    </ClCompile>
-    <ClCompile Include="textconvert.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="flexbuf.h" />
-    <ClInclude Include="objectheap.h" />
     <ClInclude Include="pathentry.h" />
-    <ClInclude Include="preprocess.h" />
-    <ClInclude Include="textconvert.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\PropellerCompiler\PropellerCompiler.vcxproj">

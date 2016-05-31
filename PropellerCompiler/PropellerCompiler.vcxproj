@@ -60,6 +60,7 @@
       <PrecompiledHeader />
       <WarningLevel>Level4</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <DisableLanguageExtensions>true</DisableLanguageExtensions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -74,6 +75,7 @@
       <PrecompiledHeader />
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableLanguageExtensions>true</DisableLanguageExtensions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -81,25 +83,35 @@
     <ClCompile Include="CompileDatBlocks.cpp" />
     <ClCompile Include="CompileExpression.cpp" />
     <ClCompile Include="CompileInstruction.cpp" />
+    <ClCompile Include="CompileSpin.cpp" />
     <ClCompile Include="CompileUtilities.cpp" />
     <ClCompile Include="DistillObjects.cpp" />
     <ClCompile Include="Elementizer.cpp" />
     <ClCompile Include="ErrorStrings.cpp" />
     <ClCompile Include="ExpressionResolver.cpp" />
+    <ClCompile Include="flexbuf.cpp" />
     <ClCompile Include="InstructionBlockCompiler.cpp" />
+    <ClCompile Include="objectheap.cpp" />
+    <ClCompile Include="preprocess.cpp" />
     <ClCompile Include="PropellerCompiler.cpp" />
     <ClCompile Include="StringConstantRoutines.cpp" />
     <ClCompile Include="SymbolEngine.cpp" />
+    <ClCompile Include="textconvert.cpp" />
     <ClCompile Include="UnusedMethodUtils.cpp" />
     <ClCompile Include="Utilities.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CompileSpin.h" />
     <ClInclude Include="CompileUtilities.h" />
     <ClInclude Include="Elementizer.h" />
     <ClInclude Include="ErrorStrings.h" />
+    <ClInclude Include="flexbuf.h" />
+    <ClInclude Include="objectheap.h" />
+    <ClInclude Include="preprocess.h" />
     <ClInclude Include="PropellerCompiler.h" />
     <ClInclude Include="PropellerCompilerInternal.h" />
     <ClInclude Include="SymbolEngine.h" />
+    <ClInclude Include="textconvert.h" />
     <ClInclude Include="UnusedMethodUtils.h" />
     <ClInclude Include="Utilities.h" />
   </ItemGroup>

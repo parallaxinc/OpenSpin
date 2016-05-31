@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////
 //                                                           //
 // Propeller Spin/PASM Compiler Command Line Tool 'OpenSpin' //
-// (c)2012-2013 Parallax Inc. DBA Parallax Semiconductor.    //
+// (c)2012-2016 Parallax Inc. DBA Parallax Semiconductor.    //
 // See end of file for terms of use.                         //
 //                                                           //
 ///////////////////////////////////////////////////////////////

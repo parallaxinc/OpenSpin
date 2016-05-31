@@ -1,18 +1,58 @@
 ///////////////////////////////////////////////////////////////
 //                                                           //
 // Propeller Spin/PASM Compiler Command Line Tool 'OpenSpin' //
-// (c)2012-2013 Parallax Inc. DBA Parallax Semiconductor.    //
+// (c)2012-2016 Parallax Inc. DBA Parallax Semiconductor.    //
 // See end of file for terms of use.                         //
 //                                                           //
 ///////////////////////////////////////////////////////////////
 //
-// textconvert.h
+// CompileSpin.h
 //
+#ifndef _COMPILESPIN_H_
+#define _COMPILESPIN_H_
 
-unsigned int DecodeUtf8(const char* pBuffer, int& nCharSize);
-void PASCIIToUnicode16(char* pPASCIIBuffer, int nPASCIIBufferLength, unsigned short* pUnicode16Buffer);
-bool UnicodeToPASCII(char* pBuffer, int nBufferLength, char* pPASCIIBuffer, bool bForceUTF8);
+typedef char* (*LoadFileFunc)(const char* pFilename, int* pnLength);
+typedef void (*FreeFileBufferFunc)(char* pBuffer);
 
+struct CompilerConfig
+{
+    CompilerConfig()
+        : bVerbose(false)
+        , bQuiet(false)
+        , bFileTreeOutputOnly(false)
+        , bFileListOutputOnly(false)
+        , bDumpSymbols(false)
+        , bUsePreprocessor(true)
+        , bAlternatePreprocessorMode(false)
+        , bUnusedMethodElimination(false)
+        , bDocMode(false)
+        , bDATonly(false)
+        , bBinary(true)
+        , eeprom_size(32768)
+    {
+    }
+
+    bool bVerbose;
+    bool bQuiet;
+    bool bFileTreeOutputOnly;
+    bool bFileListOutputOnly;
+    bool bDumpSymbols;
+    bool bUsePreprocessor;
+    bool bAlternatePreprocessorMode;
+    bool bUnusedMethodElimination;
+    bool bDocMode;
+    bool bDATonly;
+    bool bBinary;
+    unsigned int eeprom_size;
+};
+
+
+void InitCompiler(CompilerConfig* pCompilerConfig, LoadFileFunc pLoadFileFunc, FreeFileBufferFunc pFreeFileBufferFunc);
+void SetDefine(char* pName, char* pValue);
+unsigned char* CompileSpin(char* pFilename, int* pnResultLength);
+void ShutdownCompiler();
+
+#endif // _COMPILESPIN_H_
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 //                           TERMS OF USE: MIT License                                   //

@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////
 //                                                          //
 // Propeller Spin/PASM Compiler                             //
-// (c)2012 Parallax Inc. DBA Parallax Semiconductor.        //
+// (c)2012-2016 Parallax Inc. DBA Parallax Semiconductor.   //
 // Adapted from Chip Gracey's x86 asm code by Roy Eltham    //
 // See end of file for terms of use.                        //
 //                                                          //
