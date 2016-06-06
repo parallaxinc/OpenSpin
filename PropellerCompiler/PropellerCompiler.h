@@ -158,6 +158,8 @@ struct CompilerData
 
     int             unused_methods;                 // number of unused methods
     char            method_unused[32*file_limit*symbol_limit]; // hold names of unused methods
+
+    char*           current_file_path;              // full path of the current file being compiled (points to entries in s_filesAccessed[])
 };
 
 // public functions

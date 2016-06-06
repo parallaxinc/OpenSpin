@@ -60,7 +60,7 @@ memoryfile* mopen(const char* filename)
         return 0;
     }
     f->readoffset = 0;
-    f->buffer = s_pLoadFileFunc(filename, &f->length);
+    f->buffer = s_pLoadFileFunc(filename, &f->length, &f->filepath);
 
     return f;
 }

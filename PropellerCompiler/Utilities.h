@@ -237,6 +237,64 @@ public:
     }
 };
 
+
+class HeirarchyNode
+{
+public:
+    HeirarchyNode* m_pNextSibling;
+    HeirarchyNode* m_pParent;
+
+    HeirarchyNode()
+        : m_pNextSibling(0)
+        , m_pParent(0)
+    {
+    }
+
+    ~HeirarchyNode()
+    {
+        if (m_pNextSibling)
+        {
+            delete m_pNextSibling;
+        }
+    }
+};
+
+class Heirarchy
+{
+public:
+    HeirarchyNode*  m_pRoot;
+
+    Heirarchy()
+        : m_pRoot(0)
+    {
+    }
+    ~Heirarchy()
+    {
+        delete m_pRoot;
+    }
+
+    void AddNode(HeirarchyNode* pValue, HeirarchyNode* pParent)
+    {
+        if (m_pRoot == 0)
+        {
+            m_pRoot = pValue;
+        }
+        else
+        {
+            if (pParent)
+            {
+                pValue->m_pNextSibling = pParent->m_pNextSibling;
+                pParent->m_pNextSibling = pValue;
+            }
+            else
+            {
+                pValue->m_pNextSibling = m_pRoot->m_pNextSibling;
+                m_pRoot->m_pNextSibling = pValue;
+            }
+        }
+    }
+ };
+
 #endif // _UTILITIES_H_
 
 ///////////////////////////////////////////////////////////////////////////////////////////

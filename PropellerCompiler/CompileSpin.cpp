@@ -18,6 +18,7 @@
 #include "objectheap.h"
 #include "textconvert.h"
 #include "preprocess.h"
+#include "Utilities.h"
 
 #define ObjFileStackLimit   16
 #define ListLimit           2000000
@@ -33,11 +34,24 @@ static LoadFileFunc s_pLoadFileFunc = 0;
 static FreeFileBufferFunc s_pFreeFileBufferFunc = 0;
 static unsigned char* s_pCompileResultBuffer = 0;
 
+static Heirarchy s_objectHeirarchy;
+
+class ObjectNode : public HeirarchyNode
+{
+public:
+    char* m_pFullPath;
+
+    ObjectNode()
+        : m_pFullPath(0)
+    {
+    }
+};
+
 static bool GetPASCIISource(char* pFilename)
 {
     // read in file to temp buffer, convert to PASCII, and assign to s_pCompilerData->source
     int nLength = 0;
-    char* pRawBuffer = s_pLoadFileFunc(pFilename, &nLength);
+    char* pRawBuffer = s_pLoadFileFunc(pFilename, &nLength, &s_pCompilerData->current_file_path);
     if (pRawBuffer)
     {
         char* pBuffer = 0;
@@ -108,7 +122,9 @@ static bool GetPASCIISource(char* pFilename)
 
 static void CleanupMemory(bool bUnusedMethodData = true)
 {
-    // cleanup
+    delete s_objectHeirarchy.m_pRoot;
+    s_objectHeirarchy.m_pRoot = 0;
+
     if ( s_pCompilerData )
     {
         delete [] s_pCompilerData->list;
@@ -172,7 +188,23 @@ void PrintError(const char* pFilename, const char* pErrorString)
     }
 }
 
-static bool CompileRecursively(char* pFilename, int& nCompileIndex, int objCount)
+static bool CheckForCircularReference(ObjectNode* pObjectNode)
+{
+    ObjectNode* pCurrentNode = pObjectNode;
+    while (pCurrentNode->m_pParent)
+    {
+        ObjectNode* pParent = (ObjectNode*)(pCurrentNode->m_pParent);
+        if (strcmp(pObjectNode->m_pFullPath, pParent->m_pFullPath) == 0)
+        {
+            return true;
+        }
+        pCurrentNode = pParent;
+    }
+
+    return false;
+}
+
+static bool CompileRecursively(char* pFilename, int& nCompileIndex, ObjectNode* pParentNode)
 {
     nCompileIndex++;
     if (s_nObjStackPtr > 0 && (!s_compilerConfig.bQuiet || s_compilerConfig.bFileTreeOutputOnly))
@@ -214,6 +246,16 @@ static bool CompileRecursively(char* pFilename, int& nCompileIndex, int objCount
         *pExtension = 0;
     }
 
+    ObjectNode* pObjectNode = new ObjectNode();
+    pObjectNode->m_pFullPath = s_pCompilerData->current_file_path;
+    pObjectNode->m_pParent = pParentNode;
+    s_objectHeirarchy.AddNode(pObjectNode, pParentNode);
+    if (CheckForCircularReference(pObjectNode))
+    {
+        printf("%s : error : Illegal Circular Reference\n", pFilename);
+        return false;
+    }
+
     // first pass on object
     const char* pErrorString = Compile1();
     if (pErrorString != 0)
@@ -225,7 +267,6 @@ static bool CompileRecursively(char* pFilename, int& nCompileIndex, int objCount
     if (s_pCompilerData->obj_files > 0)
     {
         char filenames[file_limit*256];
-        int objCounts[file_limit];
 
         int numObjects = s_pCompilerData->obj_files;
         for (int i = 0; i < numObjects; i++)
@@ -236,12 +277,11 @@ static bool CompileRecursively(char* pFilename, int& nCompileIndex, int objCount
             {
                 strcat(&filenames[i<<8], ".spin");
             }
-            objCounts[i] = s_pCompilerData->obj_instances[i];
         }
 
         for (int i = 0; i < numObjects; i++)
         {
-            if (!CompileRecursively(&filenames[i<<8], nCompileIndex, objCounts[i]))
+            if (!CompileRecursively(&filenames[i<<8], nCompileIndex, pObjectNode))
             {
                 return false;
             }
@@ -293,7 +333,8 @@ static bool CompileRecursively(char* pFilename, int& nCompileIndex, int objCount
 
             // Load file and add to dat_data buffer
             s_pCompilerData->dat_lengths[i] = -1;
-            char* pBuffer = s_pLoadFileFunc(&filename[0], &s_pCompilerData->dat_lengths[i]);
+            char* pFilePath = 0;
+            char* pBuffer = s_pLoadFileFunc(&filename[0], &s_pCompilerData->dat_lengths[i], &pFilePath);
 
             if (s_pCompilerData->dat_lengths[i] == -1)
             {
@@ -303,7 +344,7 @@ static bool CompileRecursively(char* pFilename, int& nCompileIndex, int objCount
             }
             if (p + s_pCompilerData->dat_lengths[i] > data_limit)
             {
-                printf("%s : error : Object files exceed 128k.\n", pFilename);
+                printf("%s : error : DAT files exceed 128k.\n", pFilename);
                 return false;
             }
             memcpy(&(s_pCompilerData->dat_data[p]), pBuffer, s_pCompilerData->dat_lengths[i]);
@@ -314,12 +355,6 @@ static bool CompileRecursively(char* pFilename, int& nCompileIndex, int objCount
     }
 
     // second pass of object
-    strcpy(s_pCompilerData->current_filename, pFilename);
-    pExtension = strstr(s_pCompilerData->current_filename, ".spin");
-    if (pExtension != 0)
-    {
-        *pExtension = 0;
-    }
     pErrorString = Compile2();
     if (pErrorString != 0)
     {
@@ -586,7 +621,7 @@ restart_compile:
     s_pCompilerData->list_limit = ListLimit;
     memset(s_pCompilerData->list, 0, ListLimit);
 
-    if (s_compilerConfig.bDocMode && !s_compilerConfig.bQuiet && !s_compilerConfig.bDATonly)
+    if (s_compilerConfig.bDocMode && !s_compilerConfig.bDATonly)
     {
         s_pCompilerData->doc = new char[DocLimit];
         s_pCompilerData->doc_limit = DocLimit;
@@ -614,7 +649,7 @@ restart_compile:
     }
 
     int nCompileIndex = 0;
-    if (!CompileRecursively(pFilename, nCompileIndex, 1))
+    if (!CompileRecursively(pFilename, nCompileIndex, 0))
     {
         return 0;
     }
@@ -697,7 +732,7 @@ restart_compile:
         DumpList();
     }
 
-    if (s_compilerConfig.bDocMode && !s_compilerConfig.bQuiet && !s_compilerConfig.bDATonly)
+    if (s_compilerConfig.bDocMode && s_compilerConfig.bVerbose && !s_compilerConfig.bQuiet && !s_compilerConfig.bDATonly)
     {
         DumpDoc();
     }

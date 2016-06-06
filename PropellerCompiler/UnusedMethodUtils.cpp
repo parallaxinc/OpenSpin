@@ -934,7 +934,7 @@ void MarkCalls(MethodUsage* pMethod, ObjectEntry* pObject)
 
 void FindUnusedMethods(CompilerData* pCompilerData)
 {
-    for (int i = 0; i < file_limit; i++)
+    for (int i = 0; i < (file_limit * file_limit); i++)
     {
         s_objects[i].pObject = 0;
         s_objects[i].nObjectMethodCount = 0;

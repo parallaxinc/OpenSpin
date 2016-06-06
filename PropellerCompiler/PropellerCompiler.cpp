@@ -665,15 +665,6 @@ bool CompileSubBlocksId_Compile(int blockType, bool &bFirst, int &nMethodIndex)
                             bFirst = true;
                         }
                     }
-                    else
-                    {
-                        // just simple tracking of unused methods, maximum tracked amount works out to 1024 entries
-                        if (g_pCompilerData->unused_methods < (32 * file_limit * symbol_limit))
-                        {
-                            strcpy(&(g_pCompilerData->method_unused[symbol_limit * g_pCompilerData->unused_methods]), &(g_pCompilerData->symbolBackup[0]));
-                            g_pCompilerData->unused_methods++;
-                        }
-                    }
                     nMethodIndex++;
                 }
                 else
@@ -1412,6 +1403,19 @@ bool CompileSubBlocks_Compile(int blockType, int &subCount, int &nMethodIndex)
                     EnterInfo();
 
                     subCount++;
+                }
+                else
+                {
+                    // just simple tracking of unused methods, maximum tracked amount works out to 1024 entries
+                    if (g_pCompilerData->unused_methods < (32 * file_limit))
+                    {
+                        char szMethodName[symbol_limit + 1];
+                        int nLength = saved_inf_data3 - saved_inf_data2;
+                        strncpy(szMethodName, &g_pCompilerData->source[saved_inf_data2], nLength);
+                        szMethodName[nLength] = 0;
+                        sprintf(&(g_pCompilerData->method_unused[symbol_limit * g_pCompilerData->unused_methods]), "%s.%s", g_pCompilerData->current_filename, szMethodName);
+                        g_pCompilerData->unused_methods++;
+                    }
                 }
                 nMethodIndex++;
                 g_pSymbolEngine->Reset(true); // cancel local symbols

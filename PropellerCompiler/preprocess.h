@@ -18,7 +18,7 @@ struct predef
 #define MODE_UTF8    1
 #define MODE_UTF16   2
 
-typedef char* (*PreprocessLoadFileFunc)(const char* pFilename, int* pnLength);
+typedef char* (*PreprocessLoadFileFunc)(const char* pFilename, int* pnLength, char** ppFilePath);
 typedef void (*PreprocessFreeFileBufferFunc)(char* buffer);
 
 struct memoryfile
@@ -26,6 +26,7 @@ struct memoryfile
     char* buffer;
     int length;
     int readoffset;
+    char* filepath;
 };
 
 struct filestate

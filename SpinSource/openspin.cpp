@@ -17,7 +17,7 @@
 #include "../PropellerCompiler/CompileSpin.h"
 #include "pathentry.h"
 
-#define MAX_FILES           2048    // an object can only reference 32 other objects and only 32 dat files, so the worst case is 32*32*2 files
+#define MAX_FILES           2048
 
 static int  s_nFilesAccessed = 0;
 static char s_filesAccessed[MAX_FILES][PATH_MAX];
@@ -26,7 +26,7 @@ static char s_filesAccessed[MAX_FILES][PATH_MAX];
 static void Banner(void)
 {
     fprintf(stdout, "Propeller Spin/PASM Compiler \'OpenSpin\' (c)2012-2016 Parallax Inc. DBA Parallax Semiconductor.\n");
-    fprintf(stdout, "Version 1.00.79 Compiled on %s %s\n",__DATE__, __TIME__);
+    fprintf(stdout, "Version 1.00.80 Compiled on %s %s\n",__DATE__, __TIME__);
 }
 
 /* Usage - display a usage message and exit */
@@ -112,7 +112,7 @@ FILE* OpenFileInPath(const char *name, const char *mode)
 }
 
 // returns NULL if the file failed to open or is 0 length
-char* LoadFile(const char* pFilename, int* pnLength)
+char* LoadFile(const char* pFilename, int* pnLength, char** ppFilePath)
 {
     char* pBuffer = 0;
     FILE* pFile = OpenFileInPath(pFilename, "rb");
@@ -133,6 +133,8 @@ char* LoadFile(const char* pFilename, int* pnLength)
         }
 
         fclose(pFile);
+
+        *ppFilePath = &(s_filesAccessed[s_nFilesAccessed-1][0]);
     }
     else
     {

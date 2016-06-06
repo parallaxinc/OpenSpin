@@ -11,7 +11,7 @@
 #ifndef _COMPILESPIN_H_
 #define _COMPILESPIN_H_
 
-typedef char* (*LoadFileFunc)(const char* pFilename, int* pnLength);
+typedef char* (*LoadFileFunc)(const char* pFilename, int* pnLength, char** ppFilePath);
 typedef void (*FreeFileBufferFunc)(char* pBuffer);
 
 struct CompilerConfig
