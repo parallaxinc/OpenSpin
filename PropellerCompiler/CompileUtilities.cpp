@@ -237,8 +237,8 @@ bool CheckVariable(bool& bVariable, unsigned char& type, unsigned char& size, in
             }
             size = (g_pElementizer->GetValue() & 0xFF); // update size
 
-            bool bIndex = false;
-            if (!CheckIndex(bIndex, indexSourcePtr))
+            bool bIndexCheck = false;
+            if (!CheckIndex(bIndexCheck, indexSourcePtr))
             {
                 return false;
             }

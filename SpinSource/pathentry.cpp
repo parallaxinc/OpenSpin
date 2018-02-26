@@ -37,14 +37,14 @@ const char *MakeNextPath(PathEntry **entry, const char *name)
     return NULL;
 }
 
-bool AddPath(const char *path)
+bool AddPath(const char *newPath)
 {
-    PathEntry* entry = (PathEntry*)new char[(sizeof(PathEntry) + strlen(path))];
+    PathEntry* entry = (PathEntry*)new char[(sizeof(PathEntry) + strlen(newPath))];
     if (!(entry))
     {
         return false;
     }
-    strcpy(entry->path, path);
+    strcpy(entry->path, newPath);
     *pNextPathEntry = entry;
     pNextPathEntry = &entry->next;
     entry->next = NULL;

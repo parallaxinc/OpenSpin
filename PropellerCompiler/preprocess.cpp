@@ -253,16 +253,14 @@ int pp_nextline(struct preprocess *pp)
 /*
  * default error handling functions
  */
-static void default_errfunc(void *dummy, const char *filename, int line, const char *msg)
+static void default_messagefunc(const char *level, const char *filename, int line, const char *msg)
 {
-    const char *level = (const char *)dummy;
-
     fprintf(stderr, "%s:%d: %s: ", filename, line, level);
     fprintf(stderr, "%s", msg);
     fprintf(stderr, "\n");
 }
 
-static void doerror(struct preprocess *pp, const char *msg, ...)
+static void domessage(struct preprocess *pp, const char *level, const char *msg, ...)
 {
     va_list args;
     char tmpmsg[BUFSIZ];
@@ -272,37 +270,14 @@ static void doerror(struct preprocess *pp, const char *msg, ...)
     vsnprintf(tmpmsg, sizeof(tmpmsg), msg, args);
     va_end(args);
 
-    pp->numerrors++;
     fil = pp->fil;
     if (fil)
     {
-        (*pp->errfunc)(pp->errarg, pp->fil->name, pp->fil->lineno, tmpmsg);
+        (*pp->messagefunc)(level, pp->fil->name, pp->fil->lineno, tmpmsg);
     }
     else
     {
-        (*pp->errfunc)(pp->errarg, "", 0, tmpmsg);
-    }
-}
-
-static void dowarning(struct preprocess *pp, const char *msg, ...)
-{
-    va_list args;
-    char tmpmsg[BUFSIZ];
-    struct filestate *fil;
-
-    pp->numwarnings++;
-    va_start(args, msg);
-    vsnprintf(tmpmsg, sizeof(tmpmsg), msg, args);
-    va_end(args);
-
-    fil = pp->fil;
-    if (fil)
-    {
-        (*pp->warnfunc)(pp->warnarg, pp->fil->name, pp->fil->lineno, tmpmsg);
-    }
-    else
-    {
-        (*pp->warnfunc)(pp->warnarg, "", 0, tmpmsg);
+        (*pp->messagefunc)(level, "", 0, tmpmsg);
     }
 }
 
@@ -315,10 +290,7 @@ void pp_init(struct preprocess *pp, bool alternate)
     flexbuf_init(&pp->line, 128);
     flexbuf_init(&pp->whole, 102400);
 
-    pp->errfunc = default_errfunc;
-    pp->warnfunc = default_errfunc;
-    pp->errarg = (void *)"error";
-    pp->warnarg = (void *)"warning";
+    pp->messagefunc = default_messagefunc;
     pp->alternate = alternate;
 }
 
@@ -336,7 +308,7 @@ void pp_push_file_struct(struct preprocess *pp, memoryfile *f, const char *filen
     A = (struct filestate *)calloc(1, sizeof(*A));
     if (!A)
     {
-        doerror(pp, "Out of memory!\n");
+        domessage(pp, "error", "Out of memory!\n");
         return;
     }
     A->lineno = 0;
@@ -353,7 +325,7 @@ void pp_push_file(struct preprocess *pp, const char *name)
     f = mopen(name);
     if (!f)
     {
-        doerror(pp, "Unable to open file %s", name);
+        domessage(pp, "error", "Unable to open file %s", name);
         return;
     }
     pp_push_file_struct(pp, f, name);
@@ -375,7 +347,7 @@ void pp_pop_file(struct preprocess *pp)
     {
         if (strcmp(pp->fil->name, I->name) == 0)
         {
-           doerror(pp, "Unterminated #if starting at line %d", I->linenum);
+           domessage(pp, "error", "Unterminated #if starting at line %d", I->linenum);
            if (PI == NULL)
            {
               pp->ifs = I->next;
@@ -702,7 +674,7 @@ static void handle_ifdef(struct preprocess *pp, ParseState *P, int invert)
     I = (struct ifstate *)calloc(1, sizeof(*I));
     if (!I)
     {
-        doerror(pp, "Out of memory\n");
+        domessage(pp, "error", "Out of memory\n");
         return;
     }
     I->next = pp->ifs;
@@ -749,12 +721,12 @@ static void handle_else(struct preprocess *pp, ParseState *P)
 
     if (!I)
     {
-        doerror(pp, "#else without matching #if");
+        domessage(pp, "error", "#else without matching #if");
         return;
     }
     if (I->sawelse)
     {
-        doerror(pp, "multiple #else statements in #if");
+        domessage(pp, "error", "multiple #else statements in #if");
         return;
     }
     I->sawelse = 1;
@@ -777,7 +749,7 @@ static void handle_elseifdef(struct preprocess *pp, ParseState *P, int invert)
 
     if (!I)
     {
-        doerror(pp, "#else without matching #if");
+        domessage(pp, "error", "#else without matching #if");
         return;
     }
 
@@ -810,14 +782,14 @@ static void handle_endif(struct preprocess *pp, ParseState *P)
 
     if (!I)
     {
-        doerror(pp, "#endif without matching #if");
+        domessage(pp, "error", "#endif without matching #if");
         return;
     }
     pp->ifs = I->next;
     free(I);
 }
 
-static void handle_error(struct preprocess *pp, ParseState *P)
+static void handle_message(struct preprocess *pp, ParseState *P, char *type)
 {
     char *msg;
     if (!pp_active(pp))
@@ -825,22 +797,7 @@ static void handle_error(struct preprocess *pp, ParseState *P)
         return;
     }
     msg = parse_restofline(P);
-    doerror(pp, "#error: %s", msg);
-    if (pp->alternate)
-    {
-       exit(1);
-    }
-}
-
-static void handle_warn(struct preprocess *pp, ParseState *P)
-{
-    char *msg;
-    if (!pp_active(pp))
-    {
-        return;
-    }
-    msg = parse_restofline(P);
-    dowarning(pp, "#warn: %s", msg);
+    domessage(pp, type, "#%s: %s", type, msg);
 }
 
 static void handle_define(struct preprocess *pp, ParseState *P, int isDef)
@@ -857,13 +814,13 @@ static void handle_define(struct preprocess *pp, ParseState *P, int isDef)
     name = parse_getwordafterspaces(P);
     if (classify_char(name[0]) != PARSE_IDCHAR)
     {
-        doerror(pp, "%s is not a valid identifier for define", name);
+        domessage(pp, "error", "%s is not a valid identifier for define", name);
         return;
     }
     oldvalue = pp_getdef(pp, name);
     if (oldvalue && isDef)
     {
-        dowarning(pp, "redefining `%s'", name);
+        domessage(pp, "warning", "redefining `%s'", name);
     }
     name = strdup(name);
 
@@ -892,7 +849,7 @@ static void handle_include(struct preprocess *pp, ParseState *P)
     name = parse_getquotedstring(P);
     if (!name)
     {
-        doerror(pp, "no string found for include");
+        domessage(pp, "error", "no string found for include");
         return;
     }
     pp_push_file(pp, strdup(name));
@@ -951,11 +908,19 @@ static int do_line(struct preprocess *pp)
         }
         else if (!strcmp(func, "error"))
         {
-            handle_error(pp, &P);
+            handle_message(pp, &P, "error");
+            if (pp->alternate)
+            {
+                exit(1);
+            }
         }
-        else if (!strcmp(func, "warning"))
+        else if (!strcmp(func, "warning") || !strcmp(func, "warn"))
         {
-            handle_warn(pp, &P);
+            handle_message(pp, &P, "warning");
+        }
+        else if (!strcmp(func, "info"))
+        {
+            handle_message(pp, &P, "info");
         }
         else if (!strcmp(func, "define"))
         {
@@ -1021,7 +986,6 @@ void pp_run(struct preprocess *pp)
 char* pp_finish(struct preprocess *pp)
 {
     flexbuf_addchar(&pp->whole, 0);
-    pp_clear_define_state(pp);
     flexbuf_delete(&pp->line);
     return flexbuf_get(&pp->whole);
 }

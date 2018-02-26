@@ -504,12 +504,12 @@ bool CheckConstant(bool& bConstant)
             g_pCompilerData->intermediateResult = g_pElementizer->GetValue();
             return true;
         }
-        bool bUndefined = false;
-        if (!CheckUndefined(bUndefined))
+        bool bUndefinedCheck = false;
+        if (!CheckUndefined(bUndefinedCheck))
         {
             return false;
         }
-        if (bUndefined)
+        if (bUndefinedCheck)
         {
             if (!g_pCompilerData->bMustResolve)
             {
@@ -694,7 +694,7 @@ bool PerformOp()
             if (g_pCompilerData->intMode == 2)
             {
                 // float abs
-                fResult = fabs(fValue1);
+                fResult = (float)fabs(fValue1);
             }
             else
             {
@@ -862,7 +862,7 @@ bool PerformOp()
                     g_pCompilerData->error_msg = g_pErrorStrings[error_ccsronfp];
                     return false;
                 }
-                fResult = sqrt(fValue1);
+                fResult = (float)sqrt(fValue1);
             }
             else
             {

@@ -300,7 +300,7 @@ static bool CompileRecursively(char* pFilename, int& nCompileIndex, ObjectNode* 
         }
 
         strcpy(s_pCompilerData->current_filename, pFilename);
-        char* pExtension = strstr(s_pCompilerData->current_filename, ".spin");
+        pExtension = strstr(s_pCompilerData->current_filename, ".spin");
         if (pExtension != 0)
         {
             *pExtension = 0;
@@ -742,6 +742,7 @@ restart_compile:
 
 void ShutdownCompiler()
 {
+    pp_clear_define_state(&s_preprocessor);
     CleanupMemory();
 }
 

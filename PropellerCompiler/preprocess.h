@@ -67,15 +67,7 @@ struct preprocess
     int incomment;
 
     /* error handling code */
-    void (*errfunc)(void *arg, const char *filename, int linenum, const char *msg);
-    void (*warnfunc)(void *arg, const char *filename, int linenum, const char *msg);
-    void *errarg;
-    void *warnarg;
-
-    int  numwarnings;
-    int  numerrors;
-
-    int  in_error; /* flag to help the default error handling function */
+    void (*messagefunc)(const char *level, const char *filename, int linenum, const char *msg);
 
     bool alternate; /* flag to enable alternate preprocessor rules -  */
                     /* affects #error handling, macro substitution of */
