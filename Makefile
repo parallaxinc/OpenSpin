@@ -24,7 +24,7 @@ OS:=$(shell uname)
 ifeq ($(OS),Darwin)
 	CFLAGS+=-Wall -g -Wno-self-assign
 else
-	CFLAGS+=-Wall -g -static
+	CFLAGS+=-Wall -g $(MSTATIC)
 endif
 
 CXXFLAGS += $(CFLAGS)
