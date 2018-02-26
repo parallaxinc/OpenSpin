@@ -660,7 +660,7 @@ static int expand_macros(struct preprocess *pp, struct flexbuf *dst, char *src)
         }
         flexbuf_addstr(dst, def);
     }
-    len = flexbuf_curlen(dst);
+    len = (int)flexbuf_curlen(dst);
     flexbuf_addchar(dst, 0);
     return len;
 }

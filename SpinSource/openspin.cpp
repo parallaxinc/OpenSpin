@@ -355,7 +355,7 @@ int main(int argc, char* argv[])
         }
         else
         {
-            int offset = pTemp - &outputFilename[0];
+            int offset = (int)(pTemp - &outputFilename[0]);
             outputFilename[offset+1] = 0;
             if (compilerConfig.bDATonly)
             {

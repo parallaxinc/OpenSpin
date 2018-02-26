@@ -64,7 +64,7 @@ static bool GetPASCIISource(char* pFilename)
             pp_push_file_struct(&s_preprocessor, &mfile, pFilename);
             pp_run(&s_preprocessor);
             pBuffer = pp_finish(&s_preprocessor);
-            nLength = strlen(pBuffer);
+            nLength = (int)strlen(pBuffer);
             if (nLength == 0)
             {
                 free(pBuffer);
@@ -523,7 +523,7 @@ static void DumpSymbols()
 
 static void DumpList()
 {
-    int listOffset = 0;
+    size_t listOffset = 0;
     while (listOffset < s_pCompilerData->list_length)
     {
         char* pTemp = strstr(&(s_pCompilerData->list[listOffset]), "\r");
@@ -546,7 +546,7 @@ static void DumpList()
 
 static void DumpDoc()
 {
-    int docOffset = 0;
+    size_t docOffset = 0;
     while (docOffset < s_pCompilerData->doc_length)
     {
         char* pTemp = strstr(&(s_pCompilerData->doc[docOffset]), "\r");

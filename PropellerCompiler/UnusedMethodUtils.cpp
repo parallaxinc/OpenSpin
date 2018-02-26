@@ -287,7 +287,12 @@ void CheckForCogNewOrInit(ObjectEntry* pObject)
     {
         if (strcmp(s_objectCogInits[i].filename, pObjectFilename) == 0)
         {
-            MarkCalls(&(pObject->pMethods[s_objectCogInits[i].nSubConstant-1]), pObject);
+            // don't do this if the object has no called methods already
+            // in that case it means the cognew/coginit is never done, so it's safe to not mark the referred to method
+            if (pObject->nMethodsCalled > 0)
+            {
+                MarkCalls(&(pObject->pMethods[s_objectCogInits[i].nSubConstant - 1]), pObject);
+            }
         }
     }
 }
@@ -647,7 +652,7 @@ int ScanLowerOpcode(unsigned char* pOpcode, MethodUsage* pUsage, ObjectEntry* pO
         {
             pUsage->pCalls[pUsage->nCurrCall].opcode = (unsigned char)opcode;
             pUsage->pCalls[pUsage->nCurrCall].pubnum = (unsigned char)pubnum;
-            pUsage->pCalls[pUsage->nCurrCall].callOffset = ((&pOpcode[1]) - pMethodStart);
+            pUsage->pCalls[pUsage->nCurrCall].callOffset = (unsigned int)((&pOpcode[1]) - pMethodStart);
             
             if (opcode > 0x05)
             {
