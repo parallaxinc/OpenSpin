@@ -25,8 +25,8 @@ static char s_filesAccessed[MAX_FILES][PATH_MAX];
 
 static void Banner(void)
 {
-    fprintf(stdout, "Propeller Spin/PASM Compiler \'OpenSpin\' (c)2012-2016 Parallax Inc. DBA Parallax Semiconductor.\n");
-    fprintf(stdout, "Version 1.00.80 Compiled on %s %s\n",__DATE__, __TIME__);
+    fprintf(stdout, "Propeller Spin/PASM Compiler \'OpenSpin\' (c)2012-2018 Parallax Inc. DBA Parallax Semiconductor.\n");
+    fprintf(stdout, "Version 1.00.81 Compiled on %s %s\n",__DATE__, __TIME__);
 }
 
 /* Usage - display a usage message and exit */

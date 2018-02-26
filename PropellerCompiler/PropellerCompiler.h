@@ -82,12 +82,12 @@ struct CompilerData
     int             source_finish;  // Offending item end (+1) (if error)
 
     char*           list;           // Pointer to list data
-    int             list_limit;     // Max size of list data
-    int             list_length;    // Length of list data
+    unsigned int    list_limit;     // Max size of list data
+    unsigned int    list_length;    // Length of list data
 
     char*           doc;            // Pointer to document data
-    int             doc_limit;      // Max size of document data
-    int             doc_length;     // Length of document data
+    unsigned int    doc_limit;      // Max size of document data
+    unsigned int    doc_length;     // Length of document data
 
     unsigned char*  obj;                // Object binary for currently being compiled obj
     int             obj_ptr;            // Length of Object binary
