@@ -2,6 +2,14 @@
 # if CROSS is defined, we are building a cross compiler
 # possible targets are: win32, rpi
 
+ifeq ($(CC),)
+  CC=gcc
+endif
+
+ifeq ($(CXX),)
+  CXX=g++
+endif
+
 ifeq ($(CROSS),win32)
   CC=i686-w64-mingw32-gcc
   CXX=i686-w64-mingw32-g++
@@ -13,8 +21,6 @@ else ifeq ($(CROSS),rpi)
   EXT=
   BUILD=./build-rpi
 else
-  CC=gcc
-  CXX=g++
   EXT=
   BUILD=./build
 endif
