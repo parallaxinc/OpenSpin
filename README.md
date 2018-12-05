@@ -26,6 +26,7 @@ Downloads
  Note: These are updated automatically whenever changes are submitted here, so they include changes between releases.
 * [Linux x86_64](http://david.zemon.name:8111/repository/download/OpenSpin_LinuxX8664/lastSuccessful/openspin.tar.gz?guest=1)
 * [Windows x86](http://david.zemon.name:8111/repository/download/OpenSpin_WindowsX86/lastSuccessful/openspin.zip?guest=1)
+* [Mac OS X](http://david.zemon.name:8111/repository/download/OpenSpin_MacOsX/2548:id/openspin.tar.gz?guest-1)
 * [Raspberry Pi](http://david.zemon.name:8111/repository/download/OpenSpin_RaspberryPi/lastSuccessful/openspin.tar.gz?guest=1)
 
 Thanks
